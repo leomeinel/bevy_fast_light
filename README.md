@@ -2,7 +2,7 @@
 
 Simple 2d lighting for Bevy focused on performance over features.
 
-This is in very early development and at least currently mostly meant for my own games.
+:warning: This is still in development and currently does not work at all. Publishing this was mainly done to reserve the name.
 
 ## Inspired by
 
