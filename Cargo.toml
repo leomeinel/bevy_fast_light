@@ -5,7 +5,7 @@ name = "bevy_fast_light"
 # NOTE: Update with full semantic version on each release
 version = "0.0.1"
 edition = "2024"
-license = "Apache-2.0"
+license = "Apache-2.0 OR MIT"
 categories = ["game-engines", "graphics", "rendering"]
 description = "Simple 2d lighting for Bevy focused on performance over features."
 authors = ["Leopold Meinel"]
