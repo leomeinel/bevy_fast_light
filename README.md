@@ -2,7 +2,9 @@
 
 Simple 2d lighting for Bevy focused on performance over features.
 
-:warning: This is still in development and currently does not work at all. Publishing this was mainly done to reserve the name.
+:information_source: | Publishing this to [crates.io](https://crates.io/crates/bevy_fast_light) was mainly done to reserve the name.
+
+:warning: | This is still in development and currently does not work at all.
 
 ## Inspired by
 
