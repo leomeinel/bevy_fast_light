@@ -7,15 +7,21 @@ version = "0.0.2"
 edition = "2024"
 license = "Apache-2.0 OR MIT"
 categories = ["game-engines", "graphics", "rendering"]
-description = "Simple 2d lighting for Bevy focused on performance over features."
+description = "Simple 2D lighting for Bevy focused on performance over features."
 authors = ["Leopold Meinel"]
 repository = "https://github.com/leomeinel/bevy_fast_light"
 readme = "README.md"
 exclude = ["assets/*", "static/*"]
 
 [dependencies]
-# FIXME: Limit features
-bevy = { version = "0.18.0", default-features = false, features = ["2d"] }
+bevy = { version = "0.18", default-features = false, features = [
+ "bevy_core_pipeline",
+ "bevy_sprite_render",
+ "bevy_log",
+] }
+
+[dev-dependencies]
+bevy = { version = "0.18", default-features = false, features = ["2d"] }
 
 [package.metadata.bevy_cli.release]
 # Disable dev features for release builds.

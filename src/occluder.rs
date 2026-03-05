@@ -6,3 +6,7 @@
  * SPDX ID: Apache-2.0
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
+
+//! Occluder types and related.
+
+// TODO: Add occluders
