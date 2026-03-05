@@ -79,7 +79,7 @@ impl Default for PointLight2d {
 
 /// Custom [`Material2d`] for [`PointLight2d`].
 ///
-/// This customizes [`Material2d::fragment_shader`], [`Material2d::alpha_mode`], [`Material2d::depth_bias`] and [`Material2d::specialize`] for additive blending from [`BLEND_ADD`].
+/// This is customized for additive blending from [`BLEND_ADD`].
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Default)]
 struct PointLight2dMaterial {
     #[uniform(0)]
@@ -94,6 +94,13 @@ struct PointLight2dMaterial {
     inv_outer_radius_sq: f32,
 }
 impl Material2d for PointLight2dMaterial {
+    fn alpha_mode(&self) -> AlphaMode2d {
+        AlphaMode2d::Blend
+    }
+    fn depth_bias(&self) -> f32 {
+        1000.
+    }
+
     fn fragment_shader() -> ShaderRef {
         AssetPath::from_path_buf(embedded_path!("point_light.wgsl"))
             .with_source("embedded")
@@ -104,12 +111,7 @@ impl Material2d for PointLight2dMaterial {
             .with_source("embedded")
             .into()
     }
-    fn alpha_mode(&self) -> AlphaMode2d {
-        AlphaMode2d::Blend
-    }
-    fn depth_bias(&self) -> f32 {
-        1000.
-    }
+
     fn specialize(
         descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayoutRef,
