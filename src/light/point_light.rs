@@ -103,7 +103,7 @@ impl Material2d for PointLight2dMaterial {
         AlphaMode2d::Blend
     }
     fn depth_bias(&self) -> f32 {
-        1000.
+        f32::MAX
     }
 
     fn fragment_shader() -> ShaderRef {
