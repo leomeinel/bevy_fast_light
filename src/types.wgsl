@@ -1,5 +1,9 @@
 #define_import_path bevy_fast_light::types
 
+struct AmbientLight2dMaterial {
+    color: vec4<f32>,
+};
+
 struct PointLight2dMaterial {
     cast_shadows: u32,
     color: vec4<f32>,

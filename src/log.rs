@@ -1,5 +1,5 @@
 /*
- * File: settings.rs
+ * File: log.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -7,6 +7,6 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! General settings and related.
+//! Log messages.
 
-// TODO: Add ambient light, daylight cycle?
+pub(crate) mod error;

@@ -10,11 +10,11 @@
 //! Simple 2D lighting for Bevy focused on performance over features.
 
 mod light;
+mod log;
 mod occluder;
 mod plugin;
-mod settings;
 
 pub mod prelude {
-    pub use crate::light::point_light::PointLight2d;
+    pub use crate::light::{ambient_light::AmbientLight2d, point_light::PointLight2d};
     pub use crate::plugin::FastLightPlugin;
 }

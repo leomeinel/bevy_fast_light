@@ -12,6 +12,7 @@ Simple 2D lighting for Bevy focused on performance over features.
 ## Features
 
 - Simple and fast `PointLight2d` light source with `falloff` configurable via inner and outer radius.
+- Simple and fast `AmbientLight2d` light source.
 
 ## Usage
 
@@ -19,6 +20,7 @@ Take a look at `/examples` to find out how to use this crate.
 
 ### Examples
 
+- `ambient_light.rs`: Basic scene with a blue `AmbientLight2d`, a red rectangle as background and a `PointLight2d` of the same color.
 - `point_light.rs`: Basic scene with a green rectangle as background and a `PointLight2d` of the same color.
 
 ## Alternatives

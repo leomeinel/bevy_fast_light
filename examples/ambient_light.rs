@@ -1,5 +1,5 @@
 /*
- * File: point_light.rs
+ * File: ambient_light.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -7,7 +7,7 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Scene with a green [`Rectangle`] as background and a [`PointLight2d`] of the same color.
+//! Scene with a blue [`AmbientLight2d`], a red [`Rectangle`] as background and a [`PointLight2d`] of the same color.
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -26,16 +26,22 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(ClearColor(Color::WHITE));
-    commands.spawn(Camera2d);
+    commands.spawn((
+        Camera2d,
+        AmbientLight2d {
+            color: Color::from(tailwind::BLUE_500),
+            intensity: 0.5,
+        },
+    ));
 
     // Background object
     commands.spawn((
         Mesh2d(meshes.add(Rectangle::new(600., 600.))),
-        MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
+        MeshMaterial2d(materials.add(Color::from(tailwind::RED_400))),
     ));
 
     commands.spawn(PointLight2d {
-        color: tailwind::GREEN_500.into(),
+        color: tailwind::RED_400.into(),
         outer_radius: 200.,
         ..default()
     });

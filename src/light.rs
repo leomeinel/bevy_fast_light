@@ -11,6 +11,7 @@
 
 use bevy::render::render_resource::{BlendComponent, BlendFactor, BlendOperation, BlendState};
 
+pub mod ambient_light;
 pub mod point_light;
 
 /// [`BlendState`] for additive blending for 2D lights.

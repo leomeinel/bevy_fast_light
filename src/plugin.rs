@@ -14,13 +14,13 @@ use bevy::{
     shader::load_shader_library,
 };
 
-use crate::light::point_light::PointLight2dPlugin;
+use crate::light::{ambient_light::AmbientLight2dPlugin, point_light::PointLight2dPlugin};
 
 /// [`Plugin`] that configures fast 2D lighting from this crate.
 pub struct FastLightPlugin;
 impl Plugin for FastLightPlugin {
     fn build(&self, app: &mut App) {
         load_shader_library!(app, "types.wgsl");
-        app.add_plugins(PointLight2dPlugin);
+        app.add_plugins((AmbientLight2dPlugin, PointLight2dPlugin));
     }
 }

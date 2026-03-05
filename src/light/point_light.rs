@@ -11,14 +11,17 @@
 
 //! Point light that uses additive blending to simulate light in a 2D environment.
 
+// FIXME: Currently the lighting gets eaten too much by low ambient light intensity.
+
 use bevy::{
-    app::{App, Plugin},
+    app::{App, Plugin, Update},
     asset::{Asset, AssetPath, Assets, embedded_asset, embedded_path},
     color::{Color, LinearRgba},
     ecs::{
         component::Component,
         lifecycle::Add,
         observer::On,
+        query::Changed,
         system::{Commands, Query, ResMut},
     },
     math::{FloatPow as _, primitives::Circle},
@@ -39,6 +42,8 @@ impl Plugin for PointLight2dPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "point_light.wgsl");
         app.add_plugins(Material2dPlugin::<PointLight2dMaterial>::default());
+
+        app.add_systems(Update, sync_material);
 
         app.add_observer(on_add);
     }
@@ -80,7 +85,7 @@ impl Default for PointLight2d {
 /// Custom [`Material2d`] for [`PointLight2d`].
 ///
 /// This is customized for additive blending from [`BLEND_ADD`].
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Default)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Copy, Default, PartialEq)]
 struct PointLight2dMaterial {
     #[uniform(0)]
     cast_shadows: u32,
@@ -143,6 +148,13 @@ impl From<&PointLight2d> for PointLight2dMaterial {
         }
     }
 }
+impl PointLight2dMaterial {
+    fn set_if_neq(&mut self, new: &PointLight2dMaterial) {
+        if self != new {
+            *self = *new;
+        }
+    }
+}
 
 /// Visualize [`PointLight2d`] after it has been added.
 ///
@@ -167,4 +179,15 @@ fn on_add(
     commands
         .entity(entity)
         .insert((Mesh2d(mesh), MeshMaterial2d(material)));
+}
+
+/// Sync [`PointLight2dMaterial`] from [`PointLight2d`] if it has changed.
+fn sync_material(
+    query: Query<(&PointLight2d, &mut MeshMaterial2d<PointLight2dMaterial>), Changed<PointLight2d>>,
+    mut materials: ResMut<Assets<PointLight2dMaterial>>,
+) {
+    for (light, material) in query {
+        let material = materials.get_mut(&material.0).unwrap();
+        material.set_if_neq(&PointLight2dMaterial::from(light));
+    }
 }
