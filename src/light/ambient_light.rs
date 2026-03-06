@@ -7,7 +7,7 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Ambient light for a [`Camera2d`] in a 2D environment.
+//! Ambient light that uses multiplicative blending for a [`Camera2d`] in a 2D environment.
 
 use bevy::{
     app::{App, Plugin, Update},
@@ -47,7 +47,7 @@ impl Plugin for AmbientLight2dPlugin {
     }
 }
 
-/// Ambient light for a [`Camera2d`] in a 2D environment.
+/// Ambient light that uses multiplicative blending for a [`Camera2d`] in a 2D environment.
 #[derive(Component, Reflect, Clone)]
 pub struct AmbientLight2d {
     /// The [`Color`] of the light.
@@ -66,6 +66,8 @@ impl Default for AmbientLight2d {
 }
 
 /// Custom [`Material2d`] for [`AmbientLight2d`].
+///
+/// This is customized for multiplicative blending from [`BLEND_MULTIPLY`].
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Copy, Default, PartialEq)]
 struct AmbientLight2dMaterial {
     #[uniform(0)]
