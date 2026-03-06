@@ -16,12 +16,21 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ## Usage
 
-Take a look at `/examples` to find out how to use this crate.
+Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/main/examples) to find out how to use my crate.
 
 ### Examples
 
-- `ambient_light.rs`: Basic scene with a blue `AmbientLight2d`, a red rectangle as background and a `PointLight2d` of the same color.
-- `point_light.rs`: Basic scene with a green rectangle as background and a `PointLight2d` of the same color.
+#### `ambient_light.rs`
+
+Basic scene with a blue `AmbientLight2d`, a red rectangle as background and a `PointLight2d` of the same color.
+
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/ambient_light.webp?raw=true" width="400" alt="ambient light example">
+
+#### `point_light.rs`
+
+Basic scene with a green rectangle as background and a `PointLight2d` of the same color.
+
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/point_light.webp?raw=true" width="400" alt="point light example">
 
 ## Alternatives
 
