@@ -16,7 +16,7 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ## Usage
 
-Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/main/examples) to find out how to use my crate.
+Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/main/examples) to find out how to use this crate.
 
 ### Examples
 
