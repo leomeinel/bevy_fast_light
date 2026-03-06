@@ -14,6 +14,11 @@ Simple 2D lighting for Bevy focused on performance over features.
 - Simple and fast `PointLight2d` light source with `falloff` configurable via inner and outer radius.
 - Simple and fast `AmbientLight2d` light source.
 
+## Limitations
+
+- There is currently no light occluders or shadow casting at all.
+- `PointLight2d` does not look nice with low ambient light.
+
 ## Usage
 
 Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/main/examples) to find out how to use this crate.
