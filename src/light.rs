@@ -17,7 +17,7 @@ pub mod point_light;
 /// [`BlendState`] for additive blending for 2D lights.
 ///
 /// This implements the following formula:
-/// `final_color = source_color * 1.0 + destination_color * 1.0`
+/// `result = src_color * 1.0 + dst_color * 1.0`
 pub(crate) const BLEND_ADD: BlendState = BlendState {
     color: BlendComponent {
         src_factor: BlendFactor::One,
@@ -29,4 +29,17 @@ pub(crate) const BLEND_ADD: BlendState = BlendState {
         dst_factor: BlendFactor::One,
         operation: BlendOperation::Add,
     },
+};
+
+/// [`BlendState`] for multiplicative blending for 2D lights.
+///
+/// This implements the following formula:
+/// `result = dst_color * src_color + (1 - src_alpha) * dst_color`
+pub(crate) const BLEND_MULTIPLY: BlendState = BlendState {
+    color: BlendComponent {
+        src_factor: BlendFactor::Dst,
+        dst_factor: BlendFactor::OneMinusSrcAlpha,
+        operation: BlendOperation::Add,
+    },
+    alpha: BlendComponent::OVER,
 };

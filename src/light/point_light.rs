@@ -11,12 +11,12 @@
 
 //! Point light that uses additive blending to simulate light in a 2D environment.
 
-// FIXME: Currently the lighting gets eaten too much by low ambient light intensity.
+// FIXME: If the ambient light is very low, the color of this light overpowers the color behind it too much.
 
 use bevy::{
     app::{App, Plugin, Update},
     asset::{Asset, AssetPath, Assets, embedded_asset, embedded_path},
-    color::{Color, LinearRgba},
+    color::{Alpha as _, Color, LinearRgba},
     ecs::{
         component::Component,
         lifecycle::Add,
@@ -103,7 +103,8 @@ impl Material2d for PointLight2dMaterial {
         AlphaMode2d::Blend
     }
     fn depth_bias(&self) -> f32 {
-        f32::MAX
+        // NOTE: This will override anything.
+        f32::INFINITY
     }
 
     fn fragment_shader() -> ShaderRef {
@@ -134,7 +135,7 @@ impl Material2d for PointLight2dMaterial {
 impl From<&PointLight2d> for PointLight2dMaterial {
     fn from(value: &PointLight2d) -> Self {
         let cast_shadows = if value.cast_shadows { 1 } else { 0 };
-        let color = value.color.to_linear() * value.intensity;
+        let color = (value.color.to_linear() * value.intensity).with_alpha(1.);
         let inner_radius_sq = value.inner_radius.squared();
         let outer_radius_sq = value.outer_radius.squared();
         let inv_outer_radius_sq = 1. / outer_radius_sq;
