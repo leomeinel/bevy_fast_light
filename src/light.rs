@@ -38,7 +38,7 @@ pub(crate) const BLEND_ADD: BlendState = BlendState {
 pub(crate) const BLEND_MULTIPLY: BlendState = BlendState {
     color: BlendComponent {
         src_factor: BlendFactor::Dst,
-        dst_factor: BlendFactor::OneMinusSrcAlpha,
+        dst_factor: BlendFactor::Zero,
         operation: BlendOperation::Add,
     },
     alpha: BlendComponent::OVER,
