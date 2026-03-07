@@ -10,9 +10,9 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     let world_from_local = get_world_from_local(vertex.instance_index);
 
     return VertexOutput(
-        mesh2d_position_local_to_clip(world_from_local, vec4<f32>(vertex.position, 1.0)),
-        (world_from_local * vec4<f32>(vertex.position, 1.0)).xy,
-        (world_from_local * vec4<f32>(0.0, 0.0, 0.0, 1.0)).xy,
+        mesh2d_position_local_to_clip(world_from_local, vec4<f32>(vertex.position, 1.)),
+        (world_from_local * vec4<f32>(vertex.position, 1.)).xy,
+        (world_from_local * vec4<f32>(0., 0., 0., 1.)).xy,
     );
 }
 
