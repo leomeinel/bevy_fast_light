@@ -150,9 +150,9 @@ impl From<&PointLight2d> for PointLight2dMaterial {
     }
 }
 impl PointLight2dMaterial {
-    fn set_if_neq(&mut self, new: &PointLight2dMaterial) {
-        if self != new {
-            *self = *new;
+    fn set_if_neq(&mut self, new: PointLight2dMaterial) {
+        if *self != new {
+            *self = new;
         }
     }
 }
@@ -189,6 +189,6 @@ fn sync_material(
 ) {
     for (light, material) in query {
         let material = materials.get_mut(&material.0).unwrap();
-        material.set_if_neq(&PointLight2dMaterial::from(light));
+        material.set_if_neq(PointLight2dMaterial::from(light));
     }
 }

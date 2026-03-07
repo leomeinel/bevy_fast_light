@@ -109,9 +109,9 @@ impl From<&AmbientLight2d> for AmbientLight2dMaterial {
     }
 }
 impl AmbientLight2dMaterial {
-    fn set_if_neq(&mut self, new: &AmbientLight2dMaterial) {
-        if self != new {
-            *self = *new;
+    fn set_if_neq(&mut self, new: AmbientLight2dMaterial) {
+        if *self != new {
+            *self = new;
         }
     }
 }
@@ -149,7 +149,7 @@ fn sync_material(
 ) {
     for (light, material) in query {
         let material = materials.get_mut(&material.0).unwrap();
-        material.set_if_neq(&AmbientLight2dMaterial::from(light));
+        material.set_if_neq(AmbientLight2dMaterial::from(light));
     }
 }
 
