@@ -142,7 +142,7 @@ fn on_add(
 /// Sync [`AmbientLight2dMaterial`] from [`AmbientLight2d`] if it has changed.
 fn sync_material(
     query: Query<
-        (&AmbientLight2d, &mut MeshMaterial2d<AmbientLight2dMaterial>),
+        (&AmbientLight2d, &MeshMaterial2d<AmbientLight2dMaterial>),
         Changed<AmbientLight2d>,
     >,
     mut materials: ResMut<Assets<AmbientLight2dMaterial>>,

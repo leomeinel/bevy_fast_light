@@ -184,7 +184,7 @@ fn on_add(
 
 /// Sync [`PointLight2dMaterial`] from [`PointLight2d`] if it has changed.
 fn sync_material(
-    query: Query<(&PointLight2d, &mut MeshMaterial2d<PointLight2dMaterial>), Changed<PointLight2d>>,
+    query: Query<(&PointLight2d, &MeshMaterial2d<PointLight2dMaterial>), Changed<PointLight2d>>,
     mut materials: ResMut<Assets<PointLight2dMaterial>>,
 ) {
     for (light, material) in query {
