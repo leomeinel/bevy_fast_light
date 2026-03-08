@@ -24,9 +24,6 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     if distance_sq <= material.inner_radius_sq {
         return material.color;
     }
-    if distance_sq >= material.outer_radius_sq {
-        return vec4<f32>(0.);
-    }
 
     let distance_sq_frac = distance_sq * material.inv_outer_radius_sq;
     let falloff = saturate(1. - distance_sq_frac * distance_sq_frac);

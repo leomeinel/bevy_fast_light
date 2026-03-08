@@ -8,8 +8,8 @@ struct PointLight2dMaterial {
     cast_shadows: u32,
     color: vec4<f32>,
     inner_radius_sq: f32,
-    outer_radius_sq: f32,
     inv_outer_radius_sq: f32,
+    _padding: f32,
 };
 
 struct Vertex {

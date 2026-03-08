@@ -32,6 +32,7 @@ use bevy::{
     },
     shader::ShaderRef,
     sprite_render::{AlphaMode2d, Material2d, Material2dKey, Material2dPlugin, MeshMaterial2d},
+    utils::default,
 };
 
 use crate::light::BLEND_ADD;
@@ -94,9 +95,9 @@ struct PointLight2dMaterial {
     #[uniform(0)]
     inner_radius_sq: f32,
     #[uniform(0)]
-    outer_radius_sq: f32,
-    #[uniform(0)]
     inv_outer_radius_sq: f32,
+    #[uniform(0)]
+    _padding: f32,
 }
 impl Material2d for PointLight2dMaterial {
     fn alpha_mode(&self) -> AlphaMode2d {
@@ -137,15 +138,14 @@ impl From<&PointLight2d> for PointLight2dMaterial {
         let cast_shadows = if value.cast_shadows { 1 } else { 0 };
         let color = (value.color.to_linear() * value.intensity).with_alpha(1.);
         let inner_radius_sq = value.inner_radius.squared();
-        let outer_radius_sq = value.outer_radius.squared();
-        let inv_outer_radius_sq = 1. / outer_radius_sq;
+        let inv_outer_radius_sq = 1. / value.outer_radius.squared();
 
         Self {
             cast_shadows,
             color,
             inner_radius_sq,
-            outer_radius_sq,
             inv_outer_radius_sq,
+            ..default()
         }
     }
 }
