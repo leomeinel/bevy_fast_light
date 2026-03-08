@@ -9,18 +9,18 @@
 
 //! [`FastLightPlugin`] and related.
 
-use bevy::{
-    app::{App, Plugin},
-    shader::load_shader_library,
-};
+use bevy::app::{App, Plugin};
 
-use crate::light::{ambient_light::AmbientLight2dPlugin, point_light::PointLight2dPlugin};
+use crate::render::Light2dRenderPlugin;
 
-/// [`Plugin`] that configures fast 2D lighting from this crate.
+/// [`Plugin`] for fast 2D lighting.
+///
+/// You also need to add an [`AmbientLight2d`](crate::prelude::AmbientLight2d) to a [Camera2d](bevy::camera::Camera2d) for this to work.
+///
+/// Additionally you can spawn [`PointLight2d`](crate::prelude::PointLight2d)s to light up certain areas.
 pub struct FastLightPlugin;
 impl Plugin for FastLightPlugin {
     fn build(&self, app: &mut App) {
-        load_shader_library!(app, "types.wgsl");
-        app.add_plugins((AmbientLight2dPlugin, PointLight2dPlugin));
+        app.add_plugins(Light2dRenderPlugin);
     }
 }

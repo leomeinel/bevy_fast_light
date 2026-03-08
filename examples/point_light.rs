@@ -26,7 +26,11 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.insert_resource(ClearColor(Color::WHITE));
-    commands.spawn(Camera2d);
+    commands.spawn((
+        Camera2d,
+        // `AmbientLight2d` is required to be able to render `PointLight2d`.
+        AmbientLight2d::default(),
+    ));
 
     // Background object
     commands.spawn((

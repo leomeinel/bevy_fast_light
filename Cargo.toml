@@ -19,9 +19,13 @@ bevy = { version = "0.18", default-features = false, features = [
  "bevy_sprite_render",
  "bevy_log",
 ] }
+smallvec = "1.15"
 
 [dev-dependencies]
-bevy = { version = "0.18", default-features = false, features = ["2d"] }
+bevy = { version = "0.18", default-features = false, features = [
+ "2d",
+ "debug",
+] }
 
 [package.metadata.bevy_cli.release]
 # Disable dev features for release builds.

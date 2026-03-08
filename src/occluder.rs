@@ -7,6 +7,6 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Occluder types and related.
+//! Types of occluders.
 
 // TODO: Add occluders
