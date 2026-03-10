@@ -11,7 +11,9 @@
 
 //! [`Light2dRenderPlugin`] and related structs.
 
-// FIXME: Lighting effect stays active even after despawning for example when quitting to title screen.
+// FIXME: When despawning `AmbientLight2d`, the lighting effect does not get updated.
+//        This causes lights to for example stay active on the title screen if someone
+//        despawns `AmbientLight2d` when exiting gameplay.
 
 mod extract;
 mod node;
