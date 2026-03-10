@@ -23,7 +23,10 @@ use bevy::{
     },
 };
 
-use crate::render::extract::{ExtractedAmbientLight2d, ExtractedPointLight2d};
+use crate::render::{
+    Light2dMeta,
+    extract::{ExtractedAmbientLight2d, ExtractedPointLight2d},
+};
 
 /// Pipeline that is being used in [`Light2dRenderPlugin`](crate::render::Light2dRenderPlugin).
 ///
@@ -53,8 +56,9 @@ pub(super) fn init_light_2d_pipeline(
             (
                 texture_2d(TextureSampleType::Float { filterable: true }),
                 sampler(SamplerBindingType::Filtering),
+                uniform_buffer::<ExtractedAmbientLight2d>(false),
+                uniform_buffer::<Light2dMeta>(false),
                 uniform_buffer::<ViewUniform>(true),
-                uniform_buffer::<ExtractedAmbientLight2d>(true),
                 GpuArrayBuffer::<ExtractedPointLight2d>::binding_layout(&limits),
             ),
         ),

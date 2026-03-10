@@ -14,6 +14,9 @@
 // FIXME: When despawning `AmbientLight2d`, the lighting effect does not get updated.
 //        This causes lights to for example stay active on the title screen if someone
 //        despawns `AmbientLight2d` when exiting gameplay.
+//        Since we are now waiting for components to have changed before extracting,
+//        this also triggers if `AmbientLight2d` has not been despawned, therefore
+//        I need to find an actual solution for this.
 
 mod extract;
 mod node;
@@ -34,7 +37,8 @@ use bevy::{
 
 use crate::render::{
     extract::{
-        ExtractedAmbientLight2d, ExtractedPointLight2d, extract_ambient, extract_point_lights,
+        ExtractedAmbientLight2d, ExtractedPointLight2d, Light2dMeta, extract_ambient,
+        extract_point_lights, store_light_meta,
     },
     node::Light2dNode,
     pipeline::init_light_2d_pipeline,
@@ -57,6 +61,7 @@ impl Plugin for Light2dRenderPlugin {
 
         app.add_plugins((
             UniformComponentPlugin::<ExtractedAmbientLight2d>::default(),
+            UniformComponentPlugin::<Light2dMeta>::default(),
             GpuComponentArrayBufferPlugin::<ExtractedPointLight2d>::default(),
         ));
 
@@ -66,7 +71,13 @@ impl Plugin for Light2dRenderPlugin {
 
         render_app.add_systems(RenderStartup, init_light_2d_pipeline);
 
-        render_app.add_systems(ExtractSchedule, (extract_ambient, extract_point_lights));
+        render_app.add_systems(
+            ExtractSchedule,
+            (
+                extract_ambient,
+                (extract_point_lights, store_light_meta).chain(),
+            ),
+        );
 
         render_app
             .add_render_graph_node::<ViewNodeRunner<Light2dNode>>(Core2d, Light2dLabel)

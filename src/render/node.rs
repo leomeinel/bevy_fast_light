@@ -15,7 +15,7 @@ use bevy::{
     ecs::query::QueryItem,
     prelude::*,
     render::{
-        extract_component::{ComponentUniforms, DynamicUniformIndex},
+        extract_component::ComponentUniforms,
         render_graph::{NodeRunError, RenderGraphContext, ViewNode},
         render_resource::*,
         renderer::{RenderContext, RenderDevice},
@@ -25,7 +25,9 @@ use bevy::{
 use smallvec::{SmallVec, smallvec};
 
 use crate::render::{
-    ExtractedPointLight2d, extract::ExtractedAmbientLight2d, pipeline::Light2dPipeline,
+    ExtractedPointLight2d,
+    extract::{ExtractedAmbientLight2d, Light2dMeta},
+    pipeline::Light2dPipeline,
 };
 
 /// Render node used in [`Light2dRenderPlugin`](crate::render::Light2dRenderPlugin).
@@ -38,26 +40,27 @@ impl ViewNode for Light2dNode {
         &'static ViewTarget,
         &'static ViewUniformOffset,
         &'static ExtractedAmbientLight2d,
-        &'static DynamicUniformIndex<ExtractedAmbientLight2d>,
     );
 
     fn run(
         &self,
         _: &mut RenderGraphContext,
         render_context: &mut RenderContext,
-        (view_target, view_offset, _, ambient_index): QueryItem<Self::ViewQuery>,
+        (view_target, view_offset, _): QueryItem<Self::ViewQuery>,
         world: &World,
     ) -> Result<(), NodeRunError> {
-        let view = world.resource::<ViewUniforms>();
         let pipeline_cache = world.resource::<PipelineCache>();
         let light_2d_pipeline = world.resource::<Light2dPipeline>();
         let ambient = world.resource::<ComponentUniforms<ExtractedAmbientLight2d>>();
-        let light_buffer = world.resource::<GpuArrayBuffer<ExtractedPointLight2d>>();
-        let (Some(view), Some(pipeline), Some(ambient), Some(light_buffer)) = (
-            view.uniforms.binding(),
+        let light_meta = world.resource::<ComponentUniforms<Light2dMeta>>();
+        let view = world.resource::<ViewUniforms>();
+        let point_lights = world.resource::<GpuArrayBuffer<ExtractedPointLight2d>>();
+        let (Some(pipeline), Some(ambient), Some(light_meta), Some(view), Some(point_lights)) = (
             pipeline_cache.get_render_pipeline(light_2d_pipeline.pipeline_id),
             ambient.uniforms().binding(),
-            light_buffer.binding(),
+            light_meta.uniforms().binding(),
+            view.uniforms.binding(),
+            point_lights.binding(),
         ) else {
             return Ok(());
         };
@@ -69,9 +72,10 @@ impl ViewNode for Light2dNode {
             &BindGroupEntries::sequential((
                 post_process.source,
                 &light_2d_pipeline.sampler,
-                view,
                 ambient,
-                light_buffer,
+                light_meta,
+                view,
+                point_lights,
             )),
         );
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
@@ -87,7 +91,7 @@ impl ViewNode for Light2dNode {
             occlusion_query_set: None,
         });
 
-        let mut offsets: SmallVec<[u32; 3]> = smallvec![view_offset.offset, ambient_index.index()];
+        let mut offsets: SmallVec<[u32; 2]> = smallvec![view_offset.offset];
         // NOTE: WebGL2 does not support storage buffers. `GpuArrayBuffer` chooses the correct buffer for us,
         //       but we have to add an offset for it here.
         let limits = world.resource::<RenderDevice>().limits();

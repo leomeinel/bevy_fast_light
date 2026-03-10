@@ -36,21 +36,11 @@ use crate::{
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
 pub(crate) struct ExtractedAmbientLight2d {
     color: LinearRgba,
-    light_count: u32,
-    _padding: Vec3,
 }
 impl From<AmbientLight2d> for ExtractedAmbientLight2d {
     fn from(light: AmbientLight2d) -> Self {
         let color = light.color.to_scaled_linear(light.intensity);
-        Self { color, ..default() }
-    }
-}
-impl ExtractedAmbientLight2d {
-    fn with_light_count(self, light_count: u32) -> Self {
-        Self {
-            light_count,
-            ..self
-        }
+        Self { color }
     }
 }
 
@@ -86,19 +76,25 @@ impl ExtractedPointLight2d {
     }
 }
 
+/// [`ShaderType`] that gets extracted to the render world with metadata related to lights.
+#[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
+pub(super) struct Light2dMeta {
+    pub(super) count: u32,
+    pub(super) _padding: Vec3,
+}
+
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
 pub(super) fn extract_ambient(
     ambient: Extract<
         Single<(&RenderEntity, &AmbientLight2d), (Changed<AmbientLight2d>, With<Camera2d>)>,
     >,
-    light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
     mut commands: Commands,
 ) {
     let (render_entity, ambient) = **ambient;
-    let light_count = light_query.iter().filter(|v| v.get()).count() as u32;
+
     commands
         .entity(**render_entity)
-        .insert(ExtractedAmbientLight2d::from(*ambient).with_light_count(light_count));
+        .insert(ExtractedAmbientLight2d::from(*ambient));
 }
 
 // FIXME: We should probably also check if `ViewVisibility` is changed, but it will trigger changed even if it hasn't actually changed.
@@ -125,4 +121,30 @@ pub(super) fn extract_point_lights(
             ExtractedPointLight2d::from(*light).with_world_pos(transform.translation().xy()),
         );
     }
+}
+
+/// Store [`Light2dMeta`] in render world.
+pub(super) fn store_light_meta(
+    ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
+    changed_query: Extract<
+        Query<
+            (),
+            (
+                Or<(Changed<PointLight2d>, Changed<GlobalTransform>)>,
+                With<PointLight2d>,
+            ),
+        >,
+    >,
+    light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
+    mut commands: Commands,
+) {
+    if changed_query.is_empty() {
+        return;
+    }
+    let render_entity = **ambient;
+    let count = light_query.iter().filter(|v| v.get()).count() as u32;
+
+    commands
+        .entity(**render_entity)
+        .insert(Light2dMeta { count, ..default() });
 }
