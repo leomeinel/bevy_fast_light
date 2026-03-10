@@ -5,8 +5,8 @@ struct ExtractedAmbientLight2d {
 };
 
 struct ExtractedPointLight2d {
-    cast_shadows: u32,
     color: vec4<f32>,
+    cast_shadows: u32,
     inner_radius_sq: f32,
     outer_radius_sq: f32,
     inv_radius_delta_sq: f32,

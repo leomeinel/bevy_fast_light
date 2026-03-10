@@ -58,13 +58,13 @@ impl Default for AmbientLight2d {
 #[require(SyncToRenderWorld, Transform, Visibility, VisibilityClass)]
 #[component(on_add = add_visibility_class::<PointLight2d>)]
 pub struct PointLight2d {
+    /// The [`Color`] of the light.
+    pub color: Color,
     // FIXME: Implement this!
     /// Whether the light should cast shadows.
     ///
     /// NOTE: This has not been implemented yet!
     pub cast_shadows: bool,
-    /// The [`Color`] of the light.
-    pub color: Color,
     /// The intensity of the light.
     pub intensity: f32,
     /// The inner radius of the light.
@@ -79,8 +79,8 @@ pub struct PointLight2d {
 impl Default for PointLight2d {
     fn default() -> Self {
         Self {
-            cast_shadows: false,
             color: Color::WHITE,
+            cast_shadows: false,
             intensity: 1.,
             inner_radius: 0.,
             outer_radius: 64.,
