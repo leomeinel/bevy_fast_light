@@ -110,5 +110,9 @@ codegen-units = 4
 opt-level = 0
 
 [[example]]
+name = "ambient_light"
+path = "examples/ambient_light.rs"
+
+[[example]]
 name = "point_light"
 path = "examples/point_light.rs"
