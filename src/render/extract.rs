@@ -18,7 +18,7 @@ use bevy::{
     color::LinearRgba,
     ecs::{
         component::Component,
-        query::With,
+        query::{Changed, Or, With},
         system::{Commands, Query, Single},
     },
     math::{FloatPow as _, Vec2, Vec3, Vec3Swizzles as _},
@@ -88,7 +88,9 @@ impl ExtractedPointLight2d {
 
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
 pub(super) fn extract_ambient(
-    ambient: Extract<Single<(&RenderEntity, &AmbientLight2d), With<Camera2d>>>,
+    ambient: Extract<
+        Single<(&RenderEntity, &AmbientLight2d), (Changed<AmbientLight2d>, With<Camera2d>)>,
+    >,
     light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
     mut commands: Commands,
 ) {
@@ -99,15 +101,19 @@ pub(super) fn extract_ambient(
         .insert(ExtractedAmbientLight2d::from(*ambient).with_light_count(light_count));
 }
 
+// FIXME: We should probably also check if `ViewVisibility` is changed, but it will trigger changed even if it hasn't actually changed.
 /// Extract [`PointLight2d`] as [`ExtractedPointLight2d`] to render world.
 pub(super) fn extract_point_lights(
     light_query: Extract<
-        Query<(
-            &RenderEntity,
-            &PointLight2d,
-            &GlobalTransform,
-            &ViewVisibility,
-        )>,
+        Query<
+            (
+                &RenderEntity,
+                &PointLight2d,
+                &GlobalTransform,
+                &ViewVisibility,
+            ),
+            Or<(Changed<PointLight2d>, Changed<GlobalTransform>)>,
+        >,
     >,
     mut commands: Commands,
 ) {
