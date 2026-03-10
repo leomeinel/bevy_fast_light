@@ -13,8 +13,6 @@
 //!
 //! These extracted light types are being used in [`Light2dRenderPlugin`](crate::render::Light2dRenderPlugin).
 
-// FIXME: Check performance impact of inserting instead of modifying during extraction.
-
 use bevy::{
     camera::{Camera2d, visibility::ViewVisibility},
     color::LinearRgba,
