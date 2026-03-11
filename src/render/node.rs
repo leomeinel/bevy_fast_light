@@ -26,7 +26,7 @@ use smallvec::{SmallVec, smallvec};
 
 use crate::render::{
     ExtractedPointLight2d,
-    extract::{ExtractedAmbientLight2d, Light2dMeta},
+    extract::{ExtractedAmbientLight2d, ExtractedLight2dMeta},
     pipeline::Light2dPipeline,
 };
 
@@ -52,7 +52,7 @@ impl ViewNode for Light2dNode {
         let pipeline_cache = world.resource::<PipelineCache>();
         let light_2d_pipeline = world.resource::<Light2dPipeline>();
         let ambient = world.resource::<ComponentUniforms<ExtractedAmbientLight2d>>();
-        let light_meta = world.resource::<ComponentUniforms<Light2dMeta>>();
+        let light_meta = world.resource::<ComponentUniforms<ExtractedLight2dMeta>>();
         let view = world.resource::<ViewUniforms>();
         let point_lights = world.resource::<GpuArrayBuffer<ExtractedPointLight2d>>();
         let (Some(pipeline), Some(ambient), Some(light_meta), Some(view), Some(point_lights)) = (

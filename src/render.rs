@@ -37,8 +37,8 @@ use bevy::{
 
 use crate::render::{
     extract::{
-        ExtractedAmbientLight2d, ExtractedPointLight2d, Light2dMeta, extract_ambient,
-        extract_point_lights, store_light_meta,
+        ExtractedAmbientLight2d, ExtractedLight2dMeta, ExtractedPointLight2d, extract_ambient,
+        extract_light_meta, extract_point_lights,
     },
     node::Light2dNode,
     pipeline::init_light_2d_pipeline,
@@ -61,7 +61,7 @@ impl Plugin for Light2dRenderPlugin {
 
         app.add_plugins((
             UniformComponentPlugin::<ExtractedAmbientLight2d>::default(),
-            UniformComponentPlugin::<Light2dMeta>::default(),
+            UniformComponentPlugin::<ExtractedLight2dMeta>::default(),
             GpuComponentArrayBufferPlugin::<ExtractedPointLight2d>::default(),
         ));
 
@@ -75,7 +75,7 @@ impl Plugin for Light2dRenderPlugin {
             ExtractSchedule,
             (
                 extract_ambient,
-                (extract_point_lights, store_light_meta).chain(),
+                (extract_point_lights, extract_light_meta).chain(),
             ),
         );
 

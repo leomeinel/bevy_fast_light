@@ -76,7 +76,7 @@ impl ExtractedPointLight2d {
 
 /// [`ShaderType`] that gets extracted to the render world with metadata related to lights.
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
-pub(super) struct Light2dMeta {
+pub(super) struct ExtractedLight2dMeta {
     pub(super) count: u32,
     pub(super) _padding: Vec3,
 }
@@ -121,8 +121,8 @@ pub(super) fn extract_point_lights(
     }
 }
 
-/// Store [`Light2dMeta`] in render world.
-pub(super) fn store_light_meta(
+/// Extract [`ExtractedLight2dMeta`] to render world.
+pub(super) fn extract_light_meta(
     ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
     changed_query: Extract<
         Query<
@@ -144,5 +144,5 @@ pub(super) fn store_light_meta(
 
     commands
         .entity(**render_entity)
-        .insert(Light2dMeta { count, ..default() });
+        .insert(ExtractedLight2dMeta { count, ..default() });
 }
