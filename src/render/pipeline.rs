@@ -11,7 +11,6 @@
 
 use bevy::{
     asset::load_embedded_asset,
-    core_pipeline::FullscreenShader,
     prelude::*,
     render::{
         render_resource::{
@@ -33,7 +32,8 @@ use crate::render::{
 /// It handles all 2D lighting.
 #[derive(Resource)]
 pub(super) struct Light2dPipeline {
-    pub(super) layout_descriptor: BindGroupLayoutDescriptor,
+    pub(super) vertex_layout: BindGroupLayoutDescriptor,
+    pub(super) fragment_layout: BindGroupLayoutDescriptor,
     pub(super) sampler: Sampler,
     pub(super) pipeline_id: CachedRenderPipelineId,
 }
@@ -44,13 +44,16 @@ pub(super) struct Light2dPipeline {
 pub(super) fn init_light_2d_pipeline(
     mut commands: Commands,
     assets: Res<AssetServer>,
-    fullscreen_shader: Res<FullscreenShader>,
     pipeline_cache: Res<PipelineCache>,
     render_device: Res<RenderDevice>,
 ) {
     let limits = render_device.limits();
-    let layout_descriptor = BindGroupLayoutDescriptor::new(
-        "light_2d_bind_group_layout",
+    let vertex_layout = BindGroupLayoutDescriptor::new(
+        "light_2d_bind_group_vertex_layout",
+        &BindGroupLayoutEntries::single(ShaderStages::VERTEX, uniform_buffer::<ViewUniform>(true)),
+    );
+    let fragment_layout = BindGroupLayoutDescriptor::new(
+        "light_2d_bind_group_fragment_layout",
         &BindGroupLayoutEntries::sequential(
             ShaderStages::FRAGMENT,
             (
@@ -58,7 +61,6 @@ pub(super) fn init_light_2d_pipeline(
                 sampler(SamplerBindingType::Filtering),
                 uniform_buffer::<ExtractedAmbientLight2d>(false),
                 uniform_buffer::<Light2dMeta>(false),
-                uniform_buffer::<ViewUniform>(true),
                 GpuArrayBuffer::<ExtractedPointLight2d>::binding_layout(&limits),
             ),
         ),
@@ -69,8 +71,11 @@ pub(super) fn init_light_2d_pipeline(
     let shader = load_embedded_asset!(assets.as_ref(), "./light.wgsl");
     let pipeline_id = pipeline_cache.queue_render_pipeline(RenderPipelineDescriptor {
         label: Some("light_2d_pipeline".into()),
-        layout: vec![layout_descriptor.clone()],
-        vertex: fullscreen_shader.to_vertex_state(),
+        layout: vec![vertex_layout.clone(), fragment_layout.clone()],
+        vertex: VertexState {
+            shader: shader.clone(),
+            ..default()
+        },
         fragment: Some(FragmentState {
             shader,
             targets: vec![Some(ColorTargetState {
@@ -84,7 +89,8 @@ pub(super) fn init_light_2d_pipeline(
     });
 
     commands.insert_resource(Light2dPipeline {
-        layout_descriptor,
+        vertex_layout,
+        fragment_layout,
         sampler,
         pipeline_id,
     });

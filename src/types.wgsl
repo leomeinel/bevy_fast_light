@@ -17,3 +17,12 @@ struct Light2dMeta {
     count: u32,
     _padding: vec3<f32>,
 }
+
+struct Light2dVertexOutput {
+    @builtin(position)
+    position: vec4<f32>,
+    @location(0)
+    uv: vec2<f32>,
+    @location(1)
+    world_position: vec2<f32>,
+}

@@ -66,15 +66,19 @@ impl ViewNode for Light2dNode {
         };
 
         let post_process = view_target.post_process_write();
-        let bind_group = render_context.render_device().create_bind_group(
-            "light_2d_bind_group",
-            &pipeline_cache.get_bind_group_layout(&light_2d_pipeline.layout_descriptor),
+        let vertex_bind_group = render_context.render_device().create_bind_group(
+            "light_2d_vertex_bind_group",
+            &pipeline_cache.get_bind_group_layout(&light_2d_pipeline.vertex_layout),
+            &BindGroupEntries::single(view),
+        );
+        let fragment_bind_group = render_context.render_device().create_bind_group(
+            "light_2d_fragment_bind_group",
+            &pipeline_cache.get_bind_group_layout(&light_2d_pipeline.fragment_layout),
             &BindGroupEntries::sequential((
                 post_process.source,
                 &light_2d_pipeline.sampler,
                 ambient,
                 light_meta,
-                view,
                 point_lights,
             )),
         );
@@ -91,16 +95,17 @@ impl ViewNode for Light2dNode {
             occlusion_query_set: None,
         });
 
-        let mut offsets: SmallVec<[u32; 2]> = smallvec![view_offset.offset];
+        let mut fragment_offsets: SmallVec<[u32; 1]> = smallvec![];
         // NOTE: WebGL2 does not support storage buffers. `GpuArrayBuffer` chooses the correct buffer for us,
         //       but we have to add an offset for it here.
         let limits = world.resource::<RenderDevice>().limits();
         if limits.max_storage_buffers_per_shader_stage == 0 {
-            offsets.push(0); // `ExtractedPointLight2d`
+            fragment_offsets.push(0); // `ExtractedPointLight2d`
         }
 
         render_pass.set_render_pipeline(pipeline);
-        render_pass.set_bind_group(0, &bind_group, &offsets);
+        render_pass.set_bind_group(0, &vertex_bind_group, &[view_offset.offset]);
+        render_pass.set_bind_group(1, &fragment_bind_group, &fragment_offsets);
         render_pass.draw(0..3, 0..1);
 
         Ok(())
