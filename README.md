@@ -17,7 +17,7 @@ Simple 2D lighting for Bevy focused on performance over features.
 ## Limitations
 
 - There is currently no light occluders or shadow casting at all.
-- `PointLight2d` does not look nice with low ambient light.
+- Performance currently isn't great. Also see [this issue](https://github.com/leomeinel/bevy_fast_light/issues/3) for details. I am currently looking for an easy way to fix this.
 
 ## Usage
 
