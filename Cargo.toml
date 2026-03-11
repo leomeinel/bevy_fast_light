@@ -16,8 +16,8 @@ exclude = ["assets/*", "static/*"]
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = [
  "bevy_core_pipeline",
- "bevy_sprite_render",
  "bevy_log",
+ "bevy_sprite_render",
 ] }
 smallvec = "1.15"
 
