@@ -9,15 +9,18 @@
 
 //! Utilities to be used in the crate.
 
-use bevy::color::{Alpha as _, Color, LinearRgba};
+use bevy::{
+    color::{Color, ColorToComponents},
+    math::Vec3,
+};
 
 /// Extension of [`Color`] to add additional functionality.
 pub(crate) trait ColorExt {
-    /// Return the color as a linear RGBA color scaled by `intensity` and with an alpha of `1.`.
-    fn to_scaled_linear(self, intensity: f32) -> LinearRgba;
+    /// Convert to a Vec3 scaled by `intensity`
+    fn to_scaled_vec3(self, intensity: f32) -> Vec3;
 }
 impl ColorExt for Color {
-    fn to_scaled_linear(self, intensity: f32) -> LinearRgba {
-        (self.to_linear() * intensity).with_alpha(1.)
+    fn to_scaled_vec3(self, intensity: f32) -> Vec3 {
+        self.to_linear().to_vec3() * intensity
     }
 }

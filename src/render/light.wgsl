@@ -17,8 +17,8 @@ var<uniform> view: View;
 
 // NOTE: WebGL2 does not support storage buffers and only supports up to 4096 bytes per uniform buffer.
 #if AVAILABLE_STORAGE_BUFFER_BINDINGS == 0
-    // NOTE: `ExtractedPointLight2d` is 48 bytes and `4096. / 48. > 85.`.
-    const MAX_LIGHTS = 85u;
+    // NOTE: `ExtractedPointLight2d` is 48 bytes and `4096. / 32. = 128.`.
+    const MAX_LIGHTS = 128u;
     @group(0) @binding(5)
     var<uniform> point_lights: array<ExtractedPointLight2d, MAX_LIGHTS>;
 #else
@@ -50,5 +50,5 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
         }
     }
 
-    return src_color * light_factor;
+    return src_color * vec4<f32>(light_factor, 1.);
 }

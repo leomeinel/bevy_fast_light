@@ -15,7 +15,6 @@
 
 use bevy::{
     camera::{Camera2d, visibility::ViewVisibility},
-    color::LinearRgba,
     ecs::{
         component::Component,
         query::{Changed, Or, With},
@@ -35,36 +34,33 @@ use crate::{
 /// [`ShaderType`] that gets extracted to the render world for [`AmbientLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
 pub(crate) struct ExtractedAmbientLight2d {
-    color: LinearRgba,
+    color: Vec3,
+    pub(super) _padding: f32,
 }
 impl From<AmbientLight2d> for ExtractedAmbientLight2d {
     fn from(light: AmbientLight2d) -> Self {
-        let color = light.color.to_scaled_linear(light.intensity);
-        Self { color }
+        let color = light.color.to_scaled_vec3(light.intensity);
+        Self { color, ..default() }
     }
 }
 
 /// [`ShaderType`] that gets extracted to the render world for [`PointLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
 pub(super) struct ExtractedPointLight2d {
-    pub(super) color: LinearRgba,
-    pub(super) cast_shadows: u32,
+    pub(super) color: Vec3,
     pub(super) inner_radius_sq: f32,
+    pub(super) world_pos: Vec2,
     pub(super) outer_radius_sq: f32,
     pub(super) inv_radius_delta_sq: f32,
-    pub(super) world_pos: Vec2,
-    pub(super) _padding: Vec2,
 }
 impl From<PointLight2d> for ExtractedPointLight2d {
     fn from(light: PointLight2d) -> Self {
-        let color = light.color.to_scaled_linear(light.intensity);
-        let cast_shadows = if light.cast_shadows { 1 } else { 0 };
+        let color = light.color.to_scaled_vec3(light.intensity);
         let inner_radius_sq = light.inner_radius.squared();
         let outer_radius_sq = light.outer_radius.squared();
         let inv_radius_delta_sq = 1. / (outer_radius_sq - inner_radius_sq).max(1.);
         Self {
             color,
-            cast_shadows,
             inner_radius_sq,
             outer_radius_sq,
             inv_radius_delta_sq,
