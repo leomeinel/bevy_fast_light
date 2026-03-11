@@ -83,7 +83,7 @@ impl ViewNode for Light2dNode {
             )),
         );
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
-            label: Some("light_2d_pass"),
+            label: Some("light_2d_render_pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
                 view: post_process.destination,
                 depth_slice: None,

@@ -49,11 +49,11 @@ pub(super) fn init_light_2d_pipeline(
 ) {
     let limits = render_device.limits();
     let vertex_layout = BindGroupLayoutDescriptor::new(
-        "light_2d_bind_group_vertex_layout",
+        "light_2d_vertex_bind_group_layout",
         &BindGroupLayoutEntries::single(ShaderStages::VERTEX, uniform_buffer::<ViewUniform>(true)),
     );
     let fragment_layout = BindGroupLayoutDescriptor::new(
-        "light_2d_bind_group_fragment_layout",
+        "light_2d_fragment_bind_group_layout",
         &BindGroupLayoutEntries::sequential(
             ShaderStages::FRAGMENT,
             (
