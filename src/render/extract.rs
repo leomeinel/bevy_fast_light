@@ -15,6 +15,7 @@ use bevy::{
     camera::{Camera2d, visibility::ViewVisibility},
     ecs::{
         component::Component,
+        lifecycle::RemovedComponents,
         query::{Changed, Or, With},
         system::{Commands, Query, Res, Single},
     },
@@ -123,8 +124,9 @@ pub(super) fn extract_light_meta(
     light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
     mut commands: Commands,
     settings: Extract<Res<FastLightSettings>>,
+    removed_lights: Extract<RemovedComponents<PointLight2d>>,
 ) {
-    if changed_query.is_empty() {
+    if changed_query.is_empty() && removed_lights.is_empty() {
         return;
     }
     let render_entity = **ambient;
