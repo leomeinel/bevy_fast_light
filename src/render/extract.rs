@@ -137,7 +137,6 @@ pub(super) fn extract_light_meta(
         .insert(ExtractedLight2dMeta::from(&**settings).with_count(count));
 }
 
-// FIXME: We should probably also check if `ViewVisibility` is changed, but it will trigger changed even if it hasn't actually changed.
 /// Extract [`PointLight2d`] as [`ExtractedPointLight2d`] to render world.
 pub(super) fn extract_point_lights(
     light_query: Extract<
