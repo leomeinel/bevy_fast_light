@@ -111,6 +111,7 @@ pub(super) fn extract_ambient(
 
 /// Extract [`ExtractedLight2dMeta`] to render world.
 pub(super) fn extract_light_meta(
+    removed_lights: Extract<RemovedComponents<PointLight2d>>,
     ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
     changed_query: Extract<
         Query<
@@ -124,7 +125,6 @@ pub(super) fn extract_light_meta(
     light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
     mut commands: Commands,
     settings: Extract<Res<FastLightSettings>>,
-    removed_lights: Extract<RemovedComponents<PointLight2d>>,
 ) {
     if changed_query.is_empty() && removed_lights.is_empty() {
         return;
