@@ -9,35 +9,33 @@
  * Heavily inspired by: https://github.com/jgayfer/bevy_light_2d
  */
 
-//! [`Light2dNode`] that is being used in [`Light2dRenderPlugin`](crate::render::Light2dRenderPlugin).
+//! [`ViewNode`]s for rendering lights to the screen texture.
 
 use bevy::{
-    ecs::query::QueryItem,
-    prelude::*,
+    ecs::{query::QueryItem, world::World},
     render::{
         extract_component::ComponentUniforms,
         render_graph::{NodeRunError, RenderGraphContext, ViewNode},
         render_resource::*,
         renderer::{RenderContext, RenderDevice},
-        view::{ViewTarget, ViewUniformOffset, ViewUniforms},
+        view::{ExtractedView, ViewTarget, ViewUniformOffset, ViewUniforms},
     },
 };
 use smallvec::{SmallVec, smallvec};
 
 use crate::render::{
-    ExtractedPointLight2d,
-    extract::{ExtractedAmbientLight2d, ExtractedLight2dMeta},
-    pipeline::Light2dPipeline,
+    extract::{ExtractedAmbientLight2d, ExtractedLight2dMeta, ExtractedPointLight2d},
+    pipeline::{Light2dCompositePipeline, Light2dPipeline},
+    prepare::Light2dTextures,
 };
 
-/// Render node used in [`Light2dRenderPlugin`](crate::render::Light2dRenderPlugin).
-///
-/// This updates the bind group and draws a fullscreen vertex.
+/// Render [`ViewNode`] that renders non-ambient lights to a texture from [`Light2dTextures`].
 #[derive(Default)]
 pub(super) struct Light2dNode;
 impl ViewNode for Light2dNode {
     type ViewQuery = (
         &'static ViewTarget,
+        &'static ExtractedView,
         &'static ViewUniformOffset,
         &'static ExtractedAmbientLight2d,
     );
@@ -46,26 +44,34 @@ impl ViewNode for Light2dNode {
         &self,
         _: &mut RenderGraphContext,
         render_context: &mut RenderContext,
-        (view_target, view_offset, _): QueryItem<Self::ViewQuery>,
+        (_, extracted_view, view_offset, _): QueryItem<Self::ViewQuery>,
         world: &World,
     ) -> Result<(), NodeRunError> {
+        let view = world.resource::<ViewUniforms>();
         let pipeline_cache = world.resource::<PipelineCache>();
         let light_2d_pipeline = world.resource::<Light2dPipeline>();
-        let ambient = world.resource::<ComponentUniforms<ExtractedAmbientLight2d>>();
+        let light_2d_textures = world.resource::<Light2dTextures>();
         let light_meta = world.resource::<ComponentUniforms<ExtractedLight2dMeta>>();
-        let view = world.resource::<ViewUniforms>();
         let point_lights = world.resource::<GpuArrayBuffer<ExtractedPointLight2d>>();
-        let (Some(pipeline), Some(ambient), Some(light_meta), Some(view), Some(point_lights)) = (
-            pipeline_cache.get_render_pipeline(light_2d_pipeline.pipeline_id),
-            ambient.uniforms().binding(),
-            light_meta.uniforms().binding(),
+        let (
+            Some(view),
+            Some(pipeline),
+            Some(light_2d_texture),
+            Some(light_meta),
+            Some(point_lights),
+        ) = (
             view.uniforms.binding(),
+            pipeline_cache.get_render_pipeline(light_2d_pipeline.pipeline_id),
+            light_2d_textures
+                .0
+                .get(&extracted_view.retained_view_entity),
+            light_meta.uniforms().binding(),
             point_lights.binding(),
-        ) else {
+        )
+        else {
             return Ok(());
         };
 
-        let post_process = view_target.post_process_write();
         let vertex_bind_group = render_context.render_device().create_bind_group(
             "light_2d_vertex_bind_group",
             &pipeline_cache.get_bind_group_layout(&light_2d_pipeline.vertex_layout),
@@ -74,18 +80,13 @@ impl ViewNode for Light2dNode {
         let fragment_bind_group = render_context.render_device().create_bind_group(
             "light_2d_fragment_bind_group",
             &pipeline_cache.get_bind_group_layout(&light_2d_pipeline.fragment_layout),
-            &BindGroupEntries::sequential((
-                post_process.source,
-                &light_2d_pipeline.sampler,
-                ambient,
-                light_meta,
-                point_lights,
-            )),
+            &BindGroupEntries::sequential((light_meta, point_lights)),
         );
+
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
             label: Some("light_2d_render_pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
-                view: post_process.destination,
+                view: &light_2d_texture.default_view,
                 depth_slice: None,
                 resolve_target: None,
                 ops: Operations::default(),
@@ -106,6 +107,77 @@ impl ViewNode for Light2dNode {
         render_pass.set_render_pipeline(pipeline);
         render_pass.set_bind_group(0, &vertex_bind_group, &[view_offset.offset]);
         render_pass.set_bind_group(1, &fragment_bind_group, &fragment_offsets);
+        render_pass.draw(0..3, 0..1);
+
+        Ok(())
+    }
+}
+
+/// Render [`ViewNode`] that renders to the screen texture.
+///
+/// ## Formula
+///
+/// (texture_output + ambient_color) * screen_texture.
+///
+/// NOTE: texture_output is from [`Light2dNode`].
+#[derive(Default)]
+pub(super) struct Light2dCompositeNode;
+impl ViewNode for Light2dCompositeNode {
+    type ViewQuery = (
+        &'static ViewTarget,
+        &'static ExtractedView,
+        &'static ExtractedAmbientLight2d,
+    );
+
+    fn run(
+        &self,
+        _: &mut RenderGraphContext,
+        render_context: &mut RenderContext,
+        (view_target, extracted_view, _): QueryItem<Self::ViewQuery>,
+        world: &World,
+    ) -> Result<(), NodeRunError> {
+        let pipeline_cache = world.resource::<PipelineCache>();
+        let light_2d_composite_pipeline = world.resource::<Light2dCompositePipeline>();
+        let light_2d_textures = world.resource::<Light2dTextures>();
+        let ambient = world.resource::<ComponentUniforms<ExtractedAmbientLight2d>>();
+        let (Some(pipeline), Some(light_2d_texture), Some(ambient)) = (
+            pipeline_cache.get_render_pipeline(light_2d_composite_pipeline.pipeline_id),
+            light_2d_textures
+                .0
+                .get(&extracted_view.retained_view_entity),
+            ambient.uniforms().binding(),
+        ) else {
+            return Ok(());
+        };
+
+        let screen_texture = view_target.post_process_write();
+        let fragment_bind_group = render_context.render_device().create_bind_group(
+            "light_2d_composite_fragment_bind_group",
+            &pipeline_cache.get_bind_group_layout(&light_2d_composite_pipeline.fragment_layout),
+            &BindGroupEntries::sequential((
+                screen_texture.source,
+                &light_2d_composite_pipeline.screen_sampler,
+                &light_2d_texture.default_view,
+                &light_2d_composite_pipeline.light_2d_sampler,
+                ambient,
+            )),
+        );
+
+        let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
+            label: Some("light_2d_composite_render_pass"),
+            color_attachments: &[Some(RenderPassColorAttachment {
+                view: screen_texture.destination,
+                depth_slice: None,
+                resolve_target: None,
+                ops: Operations::default(),
+            })],
+            depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+        });
+
+        render_pass.set_render_pipeline(pipeline);
+        render_pass.set_bind_group(0, &fragment_bind_group, &[]);
         render_pass.draw(0..3, 0..1);
 
         Ok(())

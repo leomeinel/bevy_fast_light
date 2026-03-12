@@ -9,16 +9,14 @@
  * Heavily inspired by: https://github.com/jgayfer/bevy_light_2d
  */
 
-//! Light types that get extracted to the render world and related systems.
-//!
-//! These extracted light types are being used in [`Light2dRenderPlugin`](crate::render::Light2dRenderPlugin).
+//! Extracted [`Component`]s and systems for extraction to the render world.
 
 use bevy::{
     camera::{Camera2d, visibility::ViewVisibility},
     ecs::{
         component::Component,
         query::{Changed, Or, With},
-        system::{Commands, Query, Single},
+        system::{Commands, Query, Res, Single},
     },
     math::{FloatPow as _, Vec2, Vec3, Vec3Swizzles as _},
     render::{Extract, render_resource::ShaderType, sync_world::RenderEntity},
@@ -28,6 +26,7 @@ use bevy::{
 
 use crate::{
     light::{AmbientLight2d, PointLight2d},
+    plugin::FastLightSettings,
     utils::ColorExt as _,
 };
 
@@ -77,8 +76,22 @@ impl ExtractedPointLight2d {
 /// [`ShaderType`] that gets extracted to the render world with metadata related to lights.
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
 pub(super) struct ExtractedLight2dMeta {
+    pub(super) cast_shadows: u32,
     pub(super) count: u32,
-    pub(super) _padding: Vec3,
+    pub(super) _padding: Vec2,
+}
+impl From<&FastLightSettings> for ExtractedLight2dMeta {
+    fn from(settings: &FastLightSettings) -> Self {
+        Self {
+            cast_shadows: if settings.cast_shadows { 1 } else { 0 },
+            ..default()
+        }
+    }
+}
+impl ExtractedLight2dMeta {
+    fn with_count(self, count: u32) -> Self {
+        Self { count, ..self }
+    }
 }
 
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
@@ -93,6 +106,33 @@ pub(super) fn extract_ambient(
     commands
         .entity(**render_entity)
         .insert(ExtractedAmbientLight2d::from(*ambient));
+}
+
+/// Extract [`ExtractedLight2dMeta`] to render world.
+pub(super) fn extract_light_meta(
+    ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
+    changed_query: Extract<
+        Query<
+            (),
+            (
+                Or<(Changed<PointLight2d>, Changed<GlobalTransform>)>,
+                With<PointLight2d>,
+            ),
+        >,
+    >,
+    light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
+    mut commands: Commands,
+    settings: Extract<Res<FastLightSettings>>,
+) {
+    if changed_query.is_empty() {
+        return;
+    }
+    let render_entity = **ambient;
+    let count = light_query.iter().filter(|v| v.get()).count() as u32;
+
+    commands
+        .entity(**render_entity)
+        .insert(ExtractedLight2dMeta::from(&**settings).with_count(count));
 }
 
 // FIXME: We should probably also check if `ViewVisibility` is changed, but it will trigger changed even if it hasn't actually changed.
@@ -119,30 +159,4 @@ pub(super) fn extract_point_lights(
             ExtractedPointLight2d::from(*light).with_world_pos(transform.translation().xy()),
         );
     }
-}
-
-/// Extract [`ExtractedLight2dMeta`] to render world.
-pub(super) fn extract_light_meta(
-    ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
-    changed_query: Extract<
-        Query<
-            (),
-            (
-                Or<(Changed<PointLight2d>, Changed<GlobalTransform>)>,
-                With<PointLight2d>,
-            ),
-        >,
-    >,
-    light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
-    mut commands: Commands,
-) {
-    if changed_query.is_empty() {
-        return;
-    }
-    let render_entity = **ambient;
-    let count = light_query.iter().filter(|v| v.get()).count() as u32;
-
-    commands
-        .entity(**render_entity)
-        .insert(ExtractedLight2dMeta { count, ..default() });
 }

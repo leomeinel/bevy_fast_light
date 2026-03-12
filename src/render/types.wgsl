@@ -6,8 +6,9 @@ struct ExtractedAmbientLight2d {
 };
 
 struct ExtractedLight2dMeta {
+    cast_shadows: u32,
     count: u32,
-    _padding: vec3<f32>,
+    _padding: vec2<f32>,
 }
 
 struct ExtractedPointLight2d {

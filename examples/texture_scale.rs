@@ -1,5 +1,5 @@
 /*
- * File: ambient_light.rs
+ * File: texture_scale.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -7,14 +7,22 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Scene with a blue [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a gray [`Rectangle`] as background and a red [`PointLight2d`].
+//! Scene with a gray [`Rectangle`] as background and a red [`PointLight2d`] using a lower [`FastLightPlugin::texture_scale`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
 
 fn main() -> AppExit {
     App::new()
-        .add_plugins((DefaultPlugins, FastLightPlugin::default()))
+        .add_plugins((
+            DefaultPlugins,
+            FastLightPlugin {
+                // NOTE: This helps with resource usage.
+                //       The default is 1. / 8.
+                texture_scale: 1. / 32.,
+                ..default()
+            },
+        ))
         .add_systems(Startup, setup)
         .run()
 }
@@ -29,10 +37,7 @@ fn setup(
     commands.spawn((
         Camera2d,
         // `AmbientLight2d` is required to be able to render `PointLight2d`.
-        AmbientLight2d {
-            color: Color::from(tailwind::BLUE_500),
-            intensity: 0.5,
-        },
+        AmbientLight2d::default(),
     ));
 
     // Background object

@@ -116,3 +116,7 @@ path = "examples/ambient_light.rs"
 [[example]]
 name = "point_light"
 path = "examples/point_light.rs"
+
+[[example]]
+name = "texture_scale"
+path = "examples/texture_scale.rs"

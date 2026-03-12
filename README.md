@@ -17,7 +17,6 @@ Simple 2D lighting for Bevy focused on performance over features.
 ## Limitations
 
 - There is currently no light occluders or shadow casting at all.
-- Performance currently isn't great. Also see [this issue](https://github.com/leomeinel/bevy_fast_light/issues/3) for details. I am currently looking for an easy way to fix this.
 
 ## Usage
 
@@ -27,15 +26,21 @@ Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/m
 
 #### `ambient_light.rs`
 
-Basic scene with a blue `AmbientLight2d`, a red rectangle as background and a `PointLight2d` of the same color.
+Scene with a blue `AmbientLight2d` with a lower intensity, a gray `Rectangle` as background and a red `PointLight2d`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/ambient_light.webp?raw=true" width="400" alt="ambient light example">
 
 #### `point_light.rs`
 
-Basic scene with a green rectangle as background and a `PointLight2d` of the same color.
+Scene with a gray `Rectangle` as background and a red `PointLight2d`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/point_light.webp?raw=true" width="400" alt="point light example">
+
+#### `texture_scale.rs`
+
+Scene with a gray `Rectangle` as background and a red `PointLight2d` using a lower `texture_scale`.
+
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/texture_scale.webp?raw=true" width="400" alt="texture scale example">
 
 ## Alternatives
 

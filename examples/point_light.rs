@@ -7,14 +7,14 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Scene with a green [`Rectangle`] as background and a [`PointLight2d`] of the same color.
+//! Scene with a gray [`Rectangle`] as background and a red [`PointLight2d`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
 
 fn main() -> AppExit {
     App::new()
-        .add_plugins((DefaultPlugins, FastLightPlugin))
+        .add_plugins((DefaultPlugins, FastLightPlugin::default()))
         .add_systems(Startup, setup)
         .run()
 }
@@ -35,11 +35,12 @@ fn setup(
     // Background object
     commands.spawn((
         Mesh2d(meshes.add(Rectangle::new(600., 600.))),
-        MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
+        MeshMaterial2d(materials.add(Color::from(tailwind::GRAY_500))),
     ));
 
     commands.spawn(PointLight2d {
-        color: tailwind::GREEN_500.into(),
+        color: tailwind::RED_500.into(),
+        intensity: 4.,
         outer_radius: 200.,
         ..default()
     });
