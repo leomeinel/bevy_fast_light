@@ -53,6 +53,11 @@ impl ViewNode for Light2dNode {
         let light_2d_textures = world.resource::<Light2dTextures>();
         let light_meta = world.resource::<ComponentUniforms<ExtractedLight2dMeta>>();
         let point_lights = world.resource::<GpuArrayBuffer<ExtractedPointLight2d>>();
+        // NOTE: `light_meta` and `point_lights` might be `None` in this `let-else`. This will result in no light updates.
+        //       We can disregard that case because after the first `ExtractedPointLight2d` has been added, `light_meta`
+        //       will always be correct and `GpuArrayBuffer<ExtractedPointLight2d>` will exist but
+        //       might contain invalid data.
+        //       If no lights were ever present, this will skip non-ambient light updates which is desired..
         let (
             Some(view),
             Some(pipeline),
