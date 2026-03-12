@@ -113,7 +113,7 @@ pub(super) fn extract_ambient(
 pub(super) fn extract_light_meta(
     removed_lights: Extract<RemovedComponents<PointLight2d>>,
     ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
-    changed_query: Extract<
+    light_changed_query: Extract<
         Query<
             (),
             (
@@ -126,7 +126,7 @@ pub(super) fn extract_light_meta(
     mut commands: Commands,
     settings: Extract<Res<FastLightSettings>>,
 ) {
-    if changed_query.is_empty() && removed_lights.is_empty() {
+    if light_changed_query.is_empty() && removed_lights.is_empty() {
         return;
     }
     let render_entity = **ambient;
