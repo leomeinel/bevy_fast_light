@@ -31,7 +31,7 @@ use crate::plugin::FastLightSettings;
 #[derive(Resource, Default)]
 pub(super) struct Light2dTextures(pub(super) HashMap<RetainedViewEntity, CachedTexture>);
 
-// FIXME: Add scale and make configurable
+/// Prepare scaled [`CachedTexture`]s and insert into [`Light2dTextures`].
 pub(super) fn prepare_light_2d_texture(
     views: Query<(&ViewTarget, &ExtractedView)>,
     mut textures: ResMut<Light2dTextures>,
