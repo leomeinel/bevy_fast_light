@@ -5,6 +5,8 @@
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
  * SPDX ID: Apache-2.0
  * URL: https://www.apache.org/licenses/LICENSE-2.0
+ * -----
+ * Heavily inspired by: https://github.com/malbernaz/bevy_lit
  */
 
 //! Preparation systems for rendering.
