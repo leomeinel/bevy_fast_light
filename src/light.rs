@@ -68,7 +68,7 @@ pub struct PointLight2d {
     pub inner_radius: f32,
     /// The outer radius of the light.
     ///
-    /// `attenuation` starts at 1 and then a linear decrease outwards is squared if outside of [`PointLight2d::inner_radius`] until it reaches 0.
+    /// `attenuation` starts at 1 and then decreases smoothly if outside of [`PointLight2d::inner_radius`] until it reaches 0.
     pub outer_radius: f32,
 }
 impl Default for PointLight2d {

@@ -45,7 +45,7 @@ fn fragment(in: Light2dVertexOutput) -> @location(0) vec4<f32> {
             light_2d_color += light.color;
         } else if dist_sq <= light.outer_radius_sq {
             let radius_delta_frac = (dist_sq - light.inner_radius_sq) * light.inv_radius_delta_sq;
-            let falloff = saturate(1. - radius_delta_frac * radius_delta_frac);
+            let falloff = smoothstep(0., 1., 1. - radius_delta_frac);
             let attenuation = falloff * falloff;
 
             light_2d_color += light.color * attenuation;
