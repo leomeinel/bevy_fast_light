@@ -48,18 +48,16 @@ Scene with a gray `Rectangle` as background and a red `PointLight2d` using a low
 - [bevy_light_2d](https://crates.io/crates/bevy_light_2d)
 - [bevy_lit](https://crates.io/crates/bevy_lit)
 
-## Inspired by
+## Resources
 
-- [Bevy Example - CPU Drawing](https://bevy.org/examples/2d-rendering/cpu-draw/)
-- [Bevy Example - 2d Shapes](https://bevy.org/examples/2d-rendering/2d-shapes/)
-- [Bevy Example - Extended Material](https://bevy.org/examples/shaders/extended-material/)
-- [aarthificial - Deferred Lights - Pixel Renderer Devlog #1](https://youtu.be/R6vQ9VmMz2w)
-- [Barney Codes - Introduction to shaders: Learn the basics!](https://youtu.be/3mfvZ-mdtZQ)
-- [Inkbox - Creating My Own 3D Graphics Engine](https://youtu.be/OJoZSRnU0is)
-- [JohnBrx - Creating 3D Lighting for my 2D Game](https://youtu.be/UavoVWHrebM)
-- [Shirley Leisurely Games - Overcoming Godot’s 2D Light Limit With a Custom Light System](https://youtu.be/Ux3IIhbZl34)
-- [tEEvy - Understanding shaders is easy, actually](https://youtu.be/xnZfMRTmfJY)
-- [github - motion-canvas/examples](https://github.com/motion-canvas/examples/tree/master/examples/deferred-lighting/src)
+### Code
+
+- [Bevy Example - Custom Post Processing](https://bevy.org/examples/shaders/custom-post-processing/)
+
+### Articles
+
+- [hackmd.io - Bevy's Rendering Crates](https://hackmd.io/@bevy/rendering_summary)
+- [hackmd.io - The Abyss](https://hackmd.io/@bevy/the_abyss)
 - [MDN - GLSL shaders](https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_on_the_web/GLSL_Shaders)
 - [slembcke.net - 2D Lighting Techniques](https://www.slembcke.net/blog/2DLightingTechniques/)
 - [slembcke.net - 2D Lighting with Hard Shadows](https://www.slembcke.net/blog/SuperFastHardShadows/)
