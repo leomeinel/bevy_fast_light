@@ -7,7 +7,7 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Scene with a blue [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a gray [`Rectangle`] as background and a red [`PointLight2d`].
+//! Scene with a light sky colored [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a green [`Rectangle`] as background and an amber [`PointLight2d`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -25,12 +25,12 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.insert_resource(ClearColor(Color::WHITE));
+    commands.insert_resource(ClearColor(tailwind::NEUTRAL_500.into()));
     commands.spawn((
         Camera2d,
-        // `AmbientLight2d` is required to be able to render `PointLight2d`.
+        // NOTE: `AmbientLight2d` is required to be able to render `PointLight2d`.
         AmbientLight2d {
-            color: Color::from(tailwind::BLUE_500),
+            color: Color::from(tailwind::SKY_200),
             intensity: 0.5,
         },
     ));
@@ -38,12 +38,12 @@ fn setup(
     // Background object
     commands.spawn((
         Mesh2d(meshes.add(Rectangle::new(600., 600.))),
-        MeshMaterial2d(materials.add(Color::from(tailwind::GRAY_500))),
+        MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
     ));
 
     commands.spawn(PointLight2d {
-        color: tailwind::RED_500.into(),
-        intensity: 4.,
+        color: tailwind::AMBER_500.into(),
+        intensity: 1.,
         outer_radius: 200.,
         ..default()
     });

@@ -7,7 +7,7 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Scene with a gray [`Rectangle`] as background and a red [`PointLight2d`].
+//! Scene with a green [`Rectangle`] as background and an amber [`PointLight2d`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -25,22 +25,24 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.insert_resource(ClearColor(Color::WHITE));
+    commands.insert_resource(ClearColor(tailwind::NEUTRAL_500.into()));
     commands.spawn((
         Camera2d,
-        // `AmbientLight2d` is required to be able to render `PointLight2d`.
+        // NOTE: `AmbientLight2d` is required to be able to render `PointLight2d`.
         AmbientLight2d::default(),
     ));
 
     // Background object
     commands.spawn((
         Mesh2d(meshes.add(Rectangle::new(600., 600.))),
-        MeshMaterial2d(materials.add(Color::from(tailwind::GRAY_500))),
+        MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
     ));
 
     commands.spawn(PointLight2d {
-        color: tailwind::RED_500.into(),
-        intensity: 4.,
+        color: tailwind::AMBER_500.into(),
+        // NOTE: With `AmbientLight2d` intensity at 1., you might have to increase `PointLight2d` intensity.
+        //       Otherwise it will not be visible, just like shining a flashlight at day vs. at night.
+        intensity: 2.,
         outer_radius: 200.,
         ..default()
     });

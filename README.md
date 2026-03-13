@@ -26,19 +26,19 @@ Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/m
 
 #### `ambient_light.rs`
 
-Scene with a blue `AmbientLight2d` with a lower intensity, a gray `Rectangle` as background and a red `PointLight2d`.
+Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background and an amber `PointLight2d`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/ambient_light.webp?raw=true" width="400" alt="ambient light example">
 
 #### `point_light.rs`
 
-Scene with a gray `Rectangle` as background and a red `PointLight2d`.
+Scene with a green `Rectangle` as background and an amber `PointLight2d`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/point_light.webp?raw=true" width="400" alt="point light example">
 
 #### `texture_scale.rs`
 
-Scene with a gray `Rectangle` as background and a red `PointLight2d` using a lower `texture_scale`.
+Scene with a green `Rectangle` as background and an amber `PointLight2d` using a lower `texture_scale`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/texture_scale.webp?raw=true" width="400" alt="texture scale example">
 
