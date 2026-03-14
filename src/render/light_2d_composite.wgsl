@@ -17,6 +17,7 @@ var<uniform> ambient: ExtractedAmbientLight2d;
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let src_color = textureSample(screen_texture, screen_sampler, in.uv);
     let light_2d_color = textureSample(light_2d_texture, light_2d_sampler, in.uv);
+    let ambient_color = vec4<f32>(ambient.color, 1.);
 
-    return src_color * (vec4<f32>(ambient.color, 1.) + light_2d_color);
+    return src_color * (ambient_color + light_2d_color);
 }
