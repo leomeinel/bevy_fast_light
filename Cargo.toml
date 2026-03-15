@@ -3,7 +3,7 @@
 [package]
 name = "bevy_fast_light"
 # NOTE: Update with full semantic version on each release
-version = "0.5.0"
+version = "0.5.1"
 edition = "2024"
 license = "Apache-2.0 OR MIT"
 categories = ["game-engines", "graphics", "rendering"]
