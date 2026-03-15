@@ -33,7 +33,7 @@ use crate::{
 
 /// [`ShaderType`] that gets extracted to the render world for [`AmbientLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
-pub(crate) struct ExtractedAmbientLight2d {
+pub(super) struct ExtractedAmbientLight2d {
     color: Vec3,
     pub(super) _padding: f32,
 }
@@ -97,13 +97,25 @@ impl ExtractedLight2dMeta {
 
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
 pub(super) fn extract_ambient(
+    mut removed_ambient: Extract<RemovedComponents<AmbientLight2d>>,
     ambient: Extract<
         Single<(&RenderEntity, &AmbientLight2d), (Changed<AmbientLight2d>, With<Camera2d>)>,
     >,
+    render_entity_query: Extract<Query<&RenderEntity>>,
     mut commands: Commands,
 ) {
-    let (render_entity, ambient) = **ambient;
+    // Remove old extracted components
+    for entity in removed_ambient.read() {
+        let Ok(render_entity) = render_entity_query.get(entity) else {
+            continue;
+        };
+        commands
+            .entity(**render_entity)
+            .remove::<ExtractedAmbientLight2d>();
+    }
 
+    // Insert new extracted component
+    let (render_entity, ambient) = **ambient;
     commands
         .entity(**render_entity)
         .insert(ExtractedAmbientLight2d::from(*ambient));
@@ -117,7 +129,13 @@ pub(super) fn extract_light_meta(
         Query<
             (),
             (
-                Or<(Changed<PointLight2d>, Changed<GlobalTransform>)>,
+                Or<(
+                    Changed<PointLight2d>,
+                    Changed<GlobalTransform>,
+                    // NOTE: Even though the docs suggest that this would trigger every frame,
+                    //       the actual implementation mostly avoids incorrect triggers.
+                    Changed<ViewVisibility>,
+                )>,
                 With<PointLight2d>,
             ),
         >,
@@ -139,6 +157,7 @@ pub(super) fn extract_light_meta(
 
 /// Extract [`PointLight2d`] as [`ExtractedPointLight2d`] to render world.
 pub(super) fn extract_point_lights(
+    mut removed_lights: Extract<RemovedComponents<PointLight2d>>,
     light_query: Extract<
         Query<
             (
@@ -147,13 +166,34 @@ pub(super) fn extract_point_lights(
                 &GlobalTransform,
                 &ViewVisibility,
             ),
-            Or<(Changed<PointLight2d>, Changed<GlobalTransform>)>,
+            Or<(
+                Changed<PointLight2d>,
+                Changed<GlobalTransform>,
+                // NOTE: Even though the docs suggest that this would trigger every frame,
+                //       the actual implementation mostly avoids incorrect triggers.
+                Changed<ViewVisibility>,
+            )>,
         >,
     >,
+    render_entity_query: Extract<Query<&RenderEntity>>,
     mut commands: Commands,
 ) {
+    // Remove old extracted components
+    for entity in removed_lights.read() {
+        let Ok(render_entity) = render_entity_query.get(entity) else {
+            continue;
+        };
+        commands
+            .entity(**render_entity)
+            .remove::<ExtractedPointLight2d>();
+    }
+
+    // Insert new extracted components
     for (render_entity, light, transform, visibility) in &light_query {
         if !visibility.get() {
+            commands
+                .entity(**render_entity)
+                .remove::<ExtractedPointLight2d>();
             continue;
         }
         commands.entity(**render_entity).insert(

@@ -10,12 +10,13 @@
 //! [`FastLightPlugin`] and related.
 
 use bevy::{
-    app::{App, Plugin},
-    ecs::resource::Resource,
+    app::{App, Plugin, PostUpdate},
+    camera::visibility::VisibilitySystems,
+    ecs::{resource::Resource, schedule::IntoScheduleConfigs},
     render::extract_resource::ExtractResource,
 };
 
-use crate::render::plugin::FastLightRenderPlugin;
+use crate::{light::update_point_light_bounds, render::plugin::FastLightRenderPlugin};
 
 /// [`Plugin`] for fast 2D lighting.
 ///
@@ -44,7 +45,13 @@ impl Default for FastLightPlugin {
 impl Plugin for FastLightPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FastLightSettings::from(self));
+
         app.add_plugins(FastLightRenderPlugin);
+
+        app.add_systems(
+            PostUpdate,
+            update_point_light_bounds.in_set(VisibilitySystems::CalculateBounds),
+        );
     }
 }
 
