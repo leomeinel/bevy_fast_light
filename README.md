@@ -58,6 +58,6 @@ Scene with a green `Rectangle` as background and an amber `PointLight2d` using a
 
 - [hackmd.io - Bevy's Rendering Crates](https://hackmd.io/@bevy/rendering_summary)
 - [hackmd.io - The Abyss](https://hackmd.io/@bevy/the_abyss)
-- [MDN - GLSL shaders](https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_on_the_web/GLSL_Shaders)
 - [slembcke.net - 2D Lighting Techniques](https://www.slembcke.net/blog/2DLightingTechniques/)
 - [slembcke.net - 2D Lighting with Hard Shadows](https://www.slembcke.net/blog/SuperFastHardShadows/)
+- [WebGPU Shading Language](https://www.w3.org/TR/WGSL/)
