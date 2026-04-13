@@ -132,8 +132,6 @@ pub(super) fn extract_light_meta(
                 Or<(
                     Changed<PointLight2d>,
                     Changed<GlobalTransform>,
-                    // NOTE: Even though the docs suggest that this would trigger every frame,
-                    //       the actual implementation mostly avoids incorrect triggers.
                     Changed<ViewVisibility>,
                 )>,
                 With<PointLight2d>,
@@ -169,8 +167,6 @@ pub(super) fn extract_point_lights(
             Or<(
                 Changed<PointLight2d>,
                 Changed<GlobalTransform>,
-                // NOTE: Even though the docs suggest that this would trigger every frame,
-                //       the actual implementation mostly avoids incorrect triggers.
                 Changed<ViewVisibility>,
             )>,
         >,
