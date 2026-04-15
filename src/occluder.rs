@@ -13,7 +13,7 @@ use bevy::{ecs::component::Component, render::extract_component::ExtractComponen
 
 /// Light occluder for 2D environments.
 ///
-/// This is meant to be added to be added to a [`Mesh2d`](bevy::mesh::Mesh2d) which will determine the occluded shape.
+/// This is meant to be added to a [`Mesh2d`](bevy::mesh::Mesh2d) which will determine the occluded shape.
 ///
 /// This fully occludes all non-ambient light.
 #[derive(Component, ExtractComponent, Clone, Copy, Default)]
