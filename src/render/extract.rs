@@ -12,22 +12,27 @@
 //! Extracted [`Component`]s and systems for extraction to the render world.
 
 use bevy::{
-    camera::{Camera2d, visibility::ViewVisibility},
+    camera::{Camera, Camera2d, visibility::ViewVisibility},
     ecs::{
         component::Component,
+        entity::Entity,
         lifecycle::RemovedComponents,
         query::{Changed, Or, With},
-        system::{Commands, Query, Res, Single},
+        system::{Commands, Local, Query, ResMut, Single},
     },
     math::{FloatPow as _, Vec2, Vec3, Vec3Swizzles as _},
-    render::{Extract, render_resource::ShaderType, sync_world::RenderEntity},
+    platform::collections::HashSet,
+    render::{
+        Extract, render_phase::ViewSortedRenderPhases, render_resource::ShaderType,
+        sync_world::RenderEntity, view::RetainedViewEntity,
+    },
     transform::components::GlobalTransform,
     utils::default,
 };
 
 use crate::{
     light::{AmbientLight2d, PointLight2d},
-    plugin::FastLightSettings,
+    render::phase::Light2dOccluderPhaseItem,
     utils::ColorExt as _,
 };
 
@@ -77,22 +82,33 @@ impl ExtractedPointLight2d {
 /// [`ShaderType`] that gets extracted to the render world with metadata related to lights.
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
 pub(super) struct ExtractedLight2dMeta {
-    pub(super) cast_shadows: u32,
     pub(super) count: u32,
-    pub(super) _padding: Vec2,
+    pub(super) _padding: Vec3,
 }
-impl From<&FastLightSettings> for ExtractedLight2dMeta {
-    fn from(settings: &FastLightSettings) -> Self {
-        Self {
-            cast_shadows: if settings.cast_shadows { 1 } else { 0 },
-            ..default()
+impl From<u32> for ExtractedLight2dMeta {
+    fn from(count: u32) -> Self {
+        Self { count, ..default() }
+    }
+}
+
+/// Extract [`RetainedViewEntity`]s to [`ViewSortedRenderPhases<Light2dOccluderPhaseItem>`] in render world.
+pub(super) fn extract_occluder_view_entities(
+    mut occluder_phases: ResMut<ViewSortedRenderPhases<Light2dOccluderPhaseItem>>,
+    cameras: Extract<Query<(Entity, &Camera), With<Camera2d>>>,
+    mut live_entities: Local<HashSet<RetainedViewEntity>>,
+) {
+    live_entities.clear();
+    for (main_entity, camera) in &cameras {
+        if !camera.is_active {
+            continue;
         }
+        // NOTE: This is the main camera, so we use the first subview index (0)
+        let retained_view_entity = RetainedViewEntity::new(main_entity.into(), None, 0);
+        occluder_phases.insert_or_clear(retained_view_entity);
+        live_entities.insert(retained_view_entity);
     }
-}
-impl ExtractedLight2dMeta {
-    fn with_count(self, count: u32) -> Self {
-        Self { count, ..self }
-    }
+
+    occluder_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
 }
 
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
@@ -140,7 +156,6 @@ pub(super) fn extract_light_meta(
     >,
     light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
     mut commands: Commands,
-    settings: Extract<Res<FastLightSettings>>,
 ) {
     if light_changed_query.is_empty() && removed_lights.is_empty() {
         return;
@@ -150,7 +165,7 @@ pub(super) fn extract_light_meta(
 
     commands
         .entity(**render_entity)
-        .insert(ExtractedLight2dMeta::from(&**settings).with_count(count));
+        .insert(ExtractedLight2dMeta::from(count));
 }
 
 /// Extract [`PointLight2d`] as [`ExtractedPointLight2d`] to render world.

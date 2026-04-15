@@ -1,5 +1,5 @@
 /*
- * File: texture_scale.rs
+ * File: occluder.rs
  * Author: Leopold Johannes Meinel (leo@meinel.dev)
  * -----
  * Copyright (c) 2026 Leopold Johannes Meinel & contributors
@@ -7,20 +7,14 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Scene with a green [`Rectangle`] as background and an amber [`PointLight2d`] using a lower [`FastLightPlugin::texture_scale`].
+//! Scene with a light sky colored [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a green [`Rectangle`] as background, an amber [`PointLight2d`] and a [`Light2dOccluder`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
 
 fn main() -> AppExit {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            FastLightPlugin {
-                // NOTE: Reducing this helps with resource usage. The default is 0.5.
-                texture_scale: 1. / 16.,
-            },
-        ))
+        .add_plugins((DefaultPlugins, FastLightPlugin::default()))
         .add_systems(Startup, setup)
         .run()
 }
@@ -35,7 +29,10 @@ fn setup(
     commands.spawn((
         Camera2d,
         // NOTE: `AmbientLight2d` is required to be able to render `PointLight2d`.
-        AmbientLight2d::default(),
+        AmbientLight2d {
+            color: Color::from(tailwind::SKY_200),
+            intensity: 0.5,
+        },
     ));
 
     // Background object
@@ -46,10 +43,15 @@ fn setup(
 
     commands.spawn(PointLight2d {
         color: tailwind::AMBER_500.into(),
-        // NOTE: With `AmbientLight2d` intensity at 1., you might have to increase `PointLight2d` intensity.
-        //       Otherwise it will not be visible, just like shining a flashlight at day vs. at night.
-        intensity: 2.,
+        intensity: 1.,
         outer_radius: 200.,
         ..default()
     });
+
+    commands.spawn((
+        // NOTE: `Light2dOccluder` and `Mesh2d` are required to add light occluders.
+        //       The shape of `Mesh2d` is the occluded shape.
+        Light2dOccluder,
+        Mesh2d(meshes.add(Ellipse::new(40., 30.))),
+    ));
 }

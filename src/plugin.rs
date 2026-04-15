@@ -24,11 +24,6 @@ use crate::{light::update_point_light_bounds, render::plugin::FastLightRenderPlu
 ///
 /// Additionally you can spawn [`PointLight2d`](crate::prelude::PointLight2d)s to light up certain areas.
 pub struct FastLightPlugin {
-    // FIXME: Implement this!
-    /// Whether non-ambient lights should cast shadows.
-    ///
-    /// NOTE: This has not been implemented yet.
-    pub cast_shadows: bool,
     /// Texture scale for any non-ambient light.
     ///
     /// The screen texture resolution will be multiplied by this to get the light texture resolution.
@@ -36,10 +31,7 @@ pub struct FastLightPlugin {
 }
 impl Default for FastLightPlugin {
     fn default() -> Self {
-        Self {
-            cast_shadows: false,
-            texture_scale: 0.5,
-        }
+        Self { texture_scale: 0.5 }
     }
 }
 impl Plugin for FastLightPlugin {
@@ -60,13 +52,11 @@ impl Plugin for FastLightPlugin {
 /// This cannot be changed independently and should always be derived from [`FastLightPlugin`].
 #[derive(Resource, Clone, Copy, ExtractResource)]
 pub(crate) struct FastLightSettings {
-    pub(crate) cast_shadows: bool,
     pub(crate) texture_scale: f32,
 }
 impl From<&FastLightPlugin> for FastLightSettings {
     fn from(plugin: &FastLightPlugin) -> Self {
         Self {
-            cast_shadows: plugin.cast_shadows,
             texture_scale: plugin.texture_scale,
         }
     }

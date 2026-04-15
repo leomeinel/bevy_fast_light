@@ -11,6 +11,7 @@
 
 mod extract;
 mod node;
+mod phase;
 mod pipeline;
 pub(super) mod plugin;
 mod prepare;

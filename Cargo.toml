@@ -114,6 +114,10 @@ name = "ambient_light"
 path = "examples/ambient_light.rs"
 
 [[example]]
+name = "occluder"
+path = "examples/occluder.rs"
+
+[[example]]
 name = "point_light"
 path = "examples/point_light.rs"
 
