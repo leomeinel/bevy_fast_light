@@ -11,12 +11,14 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ## Features
 
-- Simple and fast `PointLight2d` light source with `falloff` configurable via inner and outer radius.
 - Simple and fast `AmbientLight2d` light source.
+- Simple and fast `Light2dOccluder` that blocks any non-ambient light using the shape of any `Mesh2d`.
+- Simple and fast `PointLight2d` light source with `falloff` configurable via inner and outer radius.
 
 ## Limitations
 
-- There is currently no light occluders or shadow casting at all.
+- There is currently no shadow casting for light occluders.
+- **Bug:** Light occluders occlude all light that the `Mesh2d` covers. If anything is on a higher Z-Level than the `Mesh2d`, non-ambient light will still not affect it.
 
 ## Usage
 
@@ -29,6 +31,12 @@ Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/m
 Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background and an amber `PointLight2d`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/ambient_light.webp?raw=true" width="400" alt="ambient light example">
+
+#### `occluder.rs`
+
+Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background, an amber `PointLight2d` and a `Light2dOccluder`.
+
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/occluder.webp?raw=true" width="400" alt="ambient light example">
 
 #### `point_light.rs`
 
@@ -53,6 +61,7 @@ Scene with a green `Rectangle` as background and an amber `PointLight2d` using a
 ### Code
 
 - [Bevy Example - Custom Post Processing](https://bevy.org/examples/shaders/custom-post-processing/)
+- [Bevy Example - Custom Render Phase](https://bevy.org/examples/shaders/custom-render-phase/)
 
 ### Articles
 
