@@ -17,8 +17,8 @@ fn main() -> AppExit {
         .add_plugins((
             DefaultPlugins,
             FastLightPlugin {
-                // NOTE: Reducing this helps with resource usage. The default is 1. / 8.
-                texture_scale: 1. / 32.,
+                // NOTE: Reducing this helps with resource usage. The default is 0.5.
+                texture_scale: 1. / 16.,
                 ..default()
             },
         ))

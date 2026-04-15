@@ -38,7 +38,7 @@ impl Default for FastLightPlugin {
     fn default() -> Self {
         Self {
             cast_shadows: false,
-            texture_scale: 0.125,
+            texture_scale: 0.5,
         }
     }
 }
