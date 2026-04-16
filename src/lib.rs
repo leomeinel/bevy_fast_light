@@ -12,7 +12,7 @@
 mod light;
 mod occluder;
 mod plugin;
-mod render;
+mod sprite_depth;
 mod utils;
 
 pub mod prelude {

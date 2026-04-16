@@ -9,18 +9,10 @@
 
 //! Utilities to be used in the crate.
 
-use bevy::{
-    color::{Color, ColorToComponents},
-    math::Vec3,
-};
+mod color;
+mod prepare;
 
-/// Extension of [`Color`] to add additional functionality.
-pub(crate) trait ColorExt {
-    /// Convert to a Vec3 scaled by `intensity`
-    fn to_scaled_vec3(self, intensity: f32) -> Vec3;
-}
-impl ColorExt for Color {
-    fn to_scaled_vec3(self, intensity: f32) -> Vec3 {
-        self.to_linear().to_vec3() * intensity
-    }
+pub(crate) mod prelude {
+    pub(crate) use super::color::ColorExt;
+    pub(crate) use super::prepare::cached_scaled_2d_texture;
 }

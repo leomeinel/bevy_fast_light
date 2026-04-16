@@ -7,20 +7,36 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! Different types of lights for 2D environments.
+//! Different light types and modules for rendering.
+//!
+//! This first renders a light map to a scalable texture and then composes this to the screen texture.
+//!
+//! This is the third and fourth render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
+
+mod extract;
+mod node;
+mod pipeline;
+mod plugin;
+mod prepare;
+
+pub(super) mod prelude {
+    pub(super) use super::extract::{
+        ExtractedAmbientLight2d, ExtractedLight2dMeta, ExtractedPointLight2d,
+    };
+    pub(super) use super::node::{Light2dCompositeNode, Light2dNode};
+    pub(super) use super::pipeline::{Light2dCompositePipeline, Light2dPipeline};
+    pub(crate) use super::plugin::{Light2dCompositeLabel, Light2dLabel, Light2dPlugin};
+    pub(super) use super::prepare::Light2dTextures;
+    pub(crate) use super::{AmbientLight2d, PointLight2d};
+}
 
 use bevy::{
     camera::{
         primitives::Aabb,
-        visibility::{NoFrustumCulling, Visibility, VisibilityClass, add_visibility_class},
+        visibility::{Visibility, VisibilityClass, add_visibility_class},
     },
     color::Color,
-    ecs::{
-        component::Component,
-        entity::Entity,
-        query::{Changed, Or, Without},
-        system::{Commands, Query},
-    },
+    ecs::component::Component,
     math::Vec3A,
     reflect::Reflect,
     render::sync_world::SyncToRenderWorld,
@@ -96,23 +112,5 @@ impl Default for PointLight2d {
             inner_radius: 0.,
             outer_radius: 64.,
         }
-    }
-}
-
-/// Update [`Aabb`] for [`PointLight2d`].
-///
-/// This allows [`PointLight2d`] to integrate with bevy native frustum culling.
-pub(super) fn update_point_light_bounds(
-    light_query: Query<
-        (Entity, &PointLight2d),
-        (
-            Or<(Changed<PointLight2d>, Without<Aabb>)>,
-            Without<NoFrustumCulling>,
-        ),
-    >,
-    mut commands: Commands,
-) {
-    for (entity, light) in light_query {
-        commands.entity(entity).insert(light.aabb());
     }
 }

@@ -12,29 +12,20 @@
 //! Extracted [`Component`]s and systems for extraction to the render world.
 
 use bevy::{
-    camera::{Camera, Camera2d, visibility::ViewVisibility},
+    camera::{Camera2d, visibility::ViewVisibility},
     ecs::{
         component::Component,
-        entity::Entity,
         lifecycle::RemovedComponents,
         query::{Changed, Or, With},
-        system::{Commands, Local, Query, ResMut, Single},
+        system::{Commands, Query, Single},
     },
     math::{FloatPow as _, Vec2, Vec3, Vec3Swizzles as _},
-    platform::collections::HashSet,
-    render::{
-        Extract, render_phase::ViewSortedRenderPhases, render_resource::ShaderType,
-        sync_world::RenderEntity, view::RetainedViewEntity,
-    },
+    render::{Extract, render_resource::ShaderType, sync_world::RenderEntity},
     transform::components::GlobalTransform,
     utils::default,
 };
 
-use crate::{
-    light::{AmbientLight2d, PointLight2d},
-    render::phase::Light2dOccluderPhaseItem,
-    utils::ColorExt as _,
-};
+use crate::{light::prelude::*, utils::prelude::*};
 
 /// [`ShaderType`] that gets extracted to the render world for [`AmbientLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
@@ -91,28 +82,8 @@ impl From<u32> for ExtractedLight2dMeta {
     }
 }
 
-/// Extract [`RetainedViewEntity`]s to [`ViewSortedRenderPhases<Light2dOccluderPhaseItem>`] in render world.
-pub(super) fn extract_occluder_view_entities(
-    mut occluder_phases: ResMut<ViewSortedRenderPhases<Light2dOccluderPhaseItem>>,
-    cameras: Extract<Query<(Entity, &Camera), With<Camera2d>>>,
-    mut live_entities: Local<HashSet<RetainedViewEntity>>,
-) {
-    live_entities.clear();
-    for (main_entity, camera) in &cameras {
-        if !camera.is_active {
-            continue;
-        }
-        // NOTE: This is the main camera, so we use the first subview index (0)
-        let retained_view_entity = RetainedViewEntity::new(main_entity.into(), None, 0);
-        occluder_phases.insert_or_clear(retained_view_entity);
-        live_entities.insert(retained_view_entity);
-    }
-
-    occluder_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
-}
-
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
-pub(super) fn extract_ambient(
+pub(super) fn extract_ambient_light(
     mut removed_ambient: Extract<RemovedComponents<AmbientLight2d>>,
     ambient: Extract<
         Single<(&RenderEntity, &AmbientLight2d), (Changed<AmbientLight2d>, With<Camera2d>)>,
@@ -138,7 +109,7 @@ pub(super) fn extract_ambient(
 }
 
 /// Extract [`ExtractedLight2dMeta`] to render world.
-pub(super) fn extract_light_meta(
+pub(super) fn extract_meta(
     removed_lights: Extract<RemovedComponents<PointLight2d>>,
     ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
     light_changed_query: Extract<

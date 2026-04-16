@@ -9,6 +9,8 @@
  * Heavily inspired by: https://bevy.org/examples/shaders/custom-render-phase/
  */
 
+//! [`PhaseItem`]s and related for light occlusion.
+
 use std::ops::Range;
 
 use bevy::{
@@ -37,10 +39,10 @@ use bevy::{
     },
 };
 
-use crate::{prelude::Light2dOccluder, render::pipeline::Light2dOccluderPipeline};
+use crate::occluder::prelude::*;
 
 /// [`PhaseItem`] drawn in the render phase for light occlusion from [`Light2dOccluder`].
-pub(super) struct Light2dOccluderPhaseItem {
+pub(super) struct OccluderPhase {
     pub sort_key: FloatOrd,
     pub entity: (Entity, MainEntity),
     pub pipeline: CachedRenderPipelineId,
@@ -49,7 +51,7 @@ pub(super) struct Light2dOccluderPhaseItem {
     pub extra_index: PhaseItemExtraIndex,
     pub indexed: bool,
 }
-impl PhaseItem for Light2dOccluderPhaseItem {
+impl PhaseItem for OccluderPhase {
     #[inline]
     fn entity(&self) -> Entity {
         self.entity.0
@@ -79,7 +81,7 @@ impl PhaseItem for Light2dOccluderPhaseItem {
         (&mut self.batch_range, &mut self.extra_index)
     }
 }
-impl SortedPhaseItem for Light2dOccluderPhaseItem {
+impl SortedPhaseItem for OccluderPhase {
     type SortKey = FloatOrd;
     #[inline]
     fn sort_key(&self) -> Self::SortKey {
@@ -90,7 +92,7 @@ impl SortedPhaseItem for Light2dOccluderPhaseItem {
         self.indexed
     }
 }
-impl CachedRenderPipelinePhaseItem for Light2dOccluderPhaseItem {
+impl CachedRenderPipelinePhaseItem for OccluderPhase {
     #[inline]
     fn cached_pipeline(&self) -> CachedRenderPipelineId {
         self.pipeline
@@ -98,31 +100,31 @@ impl CachedRenderPipelinePhaseItem for Light2dOccluderPhaseItem {
 }
 
 /// Draw function for light occlusion from [`Light2dOccluder`].
-pub(super) type DrawLight2dOccluder = (
+pub(super) type DrawOccluder = (
     SetItemPipeline,
     SetMesh2dViewBindGroup<0>,
     SetMesh2dBindGroup<1>,
     DrawMesh2d,
 );
 
-/// Queue drawable entities as [`Light2dOccluderPhaseItem`]s phase items in render phases ready for sorting.
-pub(super) fn queue_light_2d_occluders(
+/// Queue drawable entities as [`OccluderPhase`]s phase items in render phases ready for sorting.
+pub(super) fn queue_occluders(
     mut views: Query<(&ExtractedView, &RenderVisibleEntities, &Msaa)>,
-    mut occluder_render_phases: ResMut<ViewSortedRenderPhases<Light2dOccluderPhaseItem>>,
-    mut pipelines: ResMut<SpecializedMeshPipelines<Light2dOccluderPipeline>>,
-    occluder_draw_functions: Res<DrawFunctions<Light2dOccluderPhaseItem>>,
+    mut occluder_render_phases: ResMut<ViewSortedRenderPhases<OccluderPhase>>,
+    mut pipelines: ResMut<SpecializedMeshPipelines<OccluderPipeline>>,
+    occluder_draw_functions: Res<DrawFunctions<OccluderPhase>>,
     pipeline_cache: Res<PipelineCache>,
-    occluder_draw_pipeline: Res<Light2dOccluderPipeline>,
+    occluder_draw_pipeline: Res<OccluderPipeline>,
     render_meshes: Res<RenderAssets<RenderMesh>>,
     render_mesh_instances: Res<RenderMesh2dInstances>,
     has_marker: Query<(), With<Light2dOccluder>>,
 ) {
+    let draw_function = occluder_draw_functions.read().id::<DrawOccluder>();
+
     for (view, visible_entities, msaa) in &mut views {
-        let Some(occluder_phase) = occluder_render_phases.get_mut(&view.retained_view_entity)
-        else {
+        let Some(phase) = occluder_render_phases.get_mut(&view.retained_view_entity) else {
             continue;
         };
-        let occluder_draw = occluder_draw_functions.read().id::<DrawLight2dOccluder>();
         let view_key = Mesh2dPipelineKey::from_msaa_samples(msaa.samples())
             | Mesh2dPipelineKey::from_hdr(view.hdr);
 
@@ -130,13 +132,13 @@ pub(super) fn queue_light_2d_occluders(
             if has_marker.get(*render_entity).is_err() {
                 continue;
             }
-
             let Some(mesh_instance) = render_mesh_instances.get(visible_entity) else {
                 continue;
             };
             let Some(mesh) = render_meshes.get(mesh_instance.mesh_asset_id) else {
                 continue;
             };
+
             let mesh_key =
                 view_key | Mesh2dPipelineKey::from_primitive_topology(mesh.primitive_topology());
             let pipeline_id = pipelines.specialize(
@@ -154,11 +156,11 @@ pub(super) fn queue_light_2d_occluders(
             };
             let mesh_translation = &mesh_instance.transforms.world_from_local.translation;
 
-            occluder_phase.add(Light2dOccluderPhaseItem {
+            phase.add(OccluderPhase {
                 sort_key: FloatOrd(mesh_translation.z),
                 entity: (*render_entity, *visible_entity),
                 pipeline: pipeline_id,
-                draw_function: occluder_draw,
+                draw_function,
                 batch_range: 0..1,
                 extra_index: PhaseItemExtraIndex::None,
                 indexed: mesh.indexed(),

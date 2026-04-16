@@ -20,6 +20,8 @@ bevy = { version = "0.18", default-features = false, features = [
  "bevy_sprite_render",
 ] }
 smallvec = "1.15"
+fixedbitset = "0.5"
+bytemuck = "1.25"
 
 [dev-dependencies]
 bevy = { version = "0.18", default-features = false, features = [

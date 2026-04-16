@@ -1,4 +1,4 @@
-#define_import_path bevy_fast_light::types
+#define_import_path bevy_fast_light::light::types
 
 struct ExtractedAmbientLight2d {
     color: vec3<f32>,
@@ -26,12 +26,3 @@ struct Light2dVertexOutput {
     @location(1)
     world_position: vec2<f32>,
 }
-
-struct Light2dOccluderVertex {
-    @builtin(instance_index) instance_index: u32,
-    @location(0) position: vec3<f32>,
-};
-
-struct Light2dOccluderVertexOutput {
-    @builtin(position) clip_position: vec4<f32>,
-};

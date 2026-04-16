@@ -18,7 +18,6 @@ Simple 2D lighting for Bevy focused on performance over features.
 ## Limitations
 
 - There is currently no shadow casting for light occluders.
-- **Bug:** Light occluders occlude all light that the `Mesh2d` covers. If anything is on a higher Z-Level than the `Mesh2d`, non-ambient light will still not affect it.
 
 ## Usage
 
@@ -52,7 +51,8 @@ Scene with a green `Rectangle` as background and an amber `PointLight2d` using a
 
 ## Alternatives
 
-- [bevy_2d_screen_space_lightmaps](https://github.com/goto64/bevy_2d_screen_space_lightmaps)
+- [bevy_firefly](https://crates.io/crates/bevy_firefly)
+- [bevy_2d_screen_space_lightmaps](https://crates.io/crates/bevy_2d_screen_space_lightmaps)
 - [bevy_light_2d](https://crates.io/crates/bevy_light_2d)
 - [bevy_lit](https://crates.io/crates/bevy_lit)
 

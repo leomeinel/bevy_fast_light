@@ -1,6 +1,6 @@
 #import bevy_core_pipeline::fullscreen_vertex_shader::FullscreenVertexOutput
 
-#import bevy_fast_light::types::{ExtractedAmbientLight2d}
+#import bevy_fast_light::light::types::{ExtractedAmbientLight2d}
 
 @group(0) @binding(0)
 var screen_texture: texture_2d<f32>;
