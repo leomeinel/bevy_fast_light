@@ -78,7 +78,9 @@ impl Default for AmbientLight2d {
 ///
 /// color = src_color * (ambient_color + [`PointLight2d::color`] * [`PointLight2d::intensity`] * attenuation).
 ///
-/// NOTE: attenuation is influenced by [`PointLight2d::inner_radius`] and [`PointLight2d::outer_radius`].
+/// ## Note
+///
+/// attenuation is influenced by [`PointLight2d::inner_radius`] and [`PointLight2d::outer_radius`].
 #[derive(Component, Reflect, Clone, Copy)]
 #[require(SyncToRenderWorld, Transform, Visibility, VisibilityClass)]
 #[component(on_add = add_visibility_class::<Self>)]

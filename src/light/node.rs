@@ -137,7 +137,9 @@ impl ViewNode for Light2dNode {
 ///
 /// (texture_output + ambient_color) * screen_texture.
 ///
-/// NOTE: texture_output is from [`Light2dNode`].
+/// ## Note
+///
+/// texture_output is from [`Light2dNode`].
 #[derive(Default)]
 pub(super) struct Light2dCompositeNode;
 impl ViewNode for Light2dCompositeNode {

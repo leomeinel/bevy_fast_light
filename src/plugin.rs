@@ -33,7 +33,7 @@ use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 ///
 /// You also need to add an [`AmbientLight2d`] to a [Camera2d](bevy::camera::Camera2d) for this to work.
 ///
-/// Additionally you can spawn [`PointLight2d`]s to light up certain areas.
+/// Additionally you can spawn [`PointLight2d`]s to light up certain areas or [`Light2dOccluder`]s for light occlusion.
 pub struct FastLightPlugin {
     /// Texture scale for any non-ambient light.
     ///
