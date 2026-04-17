@@ -7,7 +7,7 @@
  * URL: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-//! [`PhaseItem`]s and related for [`Sprite`] z-sorting.
+//! [`PhaseItem`]s and related for [`Sprite`] z-level rendering.
 
 use std::ops::Range;
 
@@ -34,7 +34,7 @@ use fixedbitset::FixedBitSet;
 
 use crate::sprite_depth::prelude::*;
 
-/// [`PhaseItem`] drawn in the render phase for [`Sprite`] z-sorting.
+/// [`PhaseItem`] drawn in the render phase for [`Sprite`] z-level rendering.
 ///
 /// Last updated from [`bevy`]@0.18.1.
 pub(super) struct SpriteDepthPhase {
