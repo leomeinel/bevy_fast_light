@@ -25,7 +25,7 @@ Simple 2D lighting for Bevy focused on performance over features.
 | Light occluder blocking non-ambient light in any attached `Mesh2d` | `Light2dOccluder` | `Mesh2d` determines shape |
 
 
-Occluders render `Sprites` above them if they are on the same or a higher z-level.
+Occluders render `Sprites` above them if they are on the same or a higher z-level. Also see [#showcase].
 
 ## Limitations
 
