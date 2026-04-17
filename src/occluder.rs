@@ -37,6 +37,10 @@ use bevy::{ecs::component::Component, render::extract_component::ExtractComponen
 ///
 /// This is meant to be added to a [`Mesh2d`](bevy::mesh::Mesh2d) which will determine the occluded shape.
 ///
-/// This fully occludes all non-ambient light in lower z-levels.
+/// Currently this will occlude all non-ambient light.
+///
+/// ## Special Case
+///
+/// This will render [`Sprite`](bevy::sprite::Sprite)s on top of the occluder if they are on the same or a higher z-level which allows the usage as a 2d shadow.
 #[derive(Component, ExtractComponent, Clone, Copy, Default)]
 pub struct Light2dOccluder;
