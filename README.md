@@ -12,7 +12,7 @@ Simple 2D lighting for Bevy focused on performance over features.
 ## Features
 
 - Simple and fast `AmbientLight2d` light source.
-- Simple and fast `Light2dOccluder` that blocks any non-ambient light using the shape of any `Mesh2d`.
+- Simple and fast `Light2dOccluder` that blocks any non-ambient light using the shape of any `Mesh2d`. This will render `Sprites` on top of the occluder if they are on the same or a higher z-level which allows the usage as a 2d shadow.
 - Simple and fast `PointLight2d` light source with `falloff` configurable via inner and outer radius.
 
 ## Limitations
@@ -22,6 +22,14 @@ Simple 2D lighting for Bevy focused on performance over features.
 ## Usage
 
 Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/main/examples) to find out how to use this crate.
+
+### Showcase
+
+I am using most features in my learning project [Slimy Mist](https://github.com/leomeinel/slimy_mist) and have also successfully implemented a day/night cycle.
+
+This also visualizes how `Sprites` are rendered on top of the occluders if the occluder is on a lower z-level.
+
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/slimy_mist.webp?raw=true" width="400" alt="slimy mist example">
 
 ### Examples
 
@@ -35,7 +43,7 @@ Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a gree
 
 Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background, an amber `PointLight2d` and a `Light2dOccluder`.
 
-<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/occluder.webp?raw=true" width="400" alt="ambient light example">
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/occluder.webp?raw=true" width="400" alt="occluder example">
 
 #### `point_light.rs`
 
