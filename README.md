@@ -11,9 +11,21 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ## Features
 
-- Simple and fast `AmbientLight2d` light source.
-- Simple and fast `Light2dOccluder` that blocks any non-ambient light using the shape of any `Mesh2d`. This will render `Sprites` on top of occluders if they are on the same or a higher z-level which allows the usage as a 2d shadow.
-- Simple and fast `PointLight2d` light source with `falloff` configurable via inner and outer radius.
+### Lights
+
+| Purpose       | Component        | Config                                                  |
+| ------------- | ---------------- | ------------------------------------------------------- |
+| Ambient light | `AmbientLight2d` | `color` and `intensity`                                 |
+| Point light   | `PointLight2d`   | `color`, `intensity`, `inner_radius` and `outer_radius` |
+
+### Occluders
+
+| Purpose                                                            | Component         | Config                    |
+| ------------------------------------------------------------------ | ----------------- | ------------------------- |
+| Light occluder blocking non-ambient light in any attached `Mesh2d` | `Light2dOccluder` | `Mesh2d` determines shape |
+
+
+Occluders render `Sprites` above them if they are on the same or a higher z-level.
 
 ## Limitations
 
