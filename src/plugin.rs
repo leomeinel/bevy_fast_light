@@ -12,7 +12,7 @@
 //! ## Render stages
 //!
 //! 1. Render to a scalable texture that uses the red channel for z-levels of all [`Sprites`](bevy::sprite::Sprite)s.
-//! 2. Render to a scalable texture that uses the red channel for determining if an occluder exists and the green channel for its' z-level.
+//! 2. Render to a scalable texture that uses the red channel for determining if an occluder exists and the green channel for its z-level.
 //! 3. Render a light map to a scalable texture.
 //! 4. Compose from light map to screen texture.
 

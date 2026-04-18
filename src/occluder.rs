@@ -9,7 +9,7 @@
 
 //! Different occluders and modules for rendering.
 //!
-//! This renders to a scalable texture that uses the red channel for determining if an occluder exists and the green channel for its' z-level.
+//! This renders to a scalable texture that uses the red channel for determining if an occluder exists and the green channel for its z-level.
 //!
 //! This is the second render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 
