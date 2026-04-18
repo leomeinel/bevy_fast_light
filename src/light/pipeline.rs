@@ -78,19 +78,8 @@ pub(super) fn init_light_2d_pipeline(
         ),
     );
 
-    // NOTE: We are using linear sampling here to avoid pixelated lights
-    let sprite_depth_sampler = render_device.create_sampler(&SamplerDescriptor {
-        mag_filter: FilterMode::Linear,
-        min_filter: FilterMode::Linear,
-        mipmap_filter: FilterMode::Linear,
-        ..default()
-    });
-    let occluder_sampler = render_device.create_sampler(&SamplerDescriptor {
-        mag_filter: FilterMode::Linear,
-        min_filter: FilterMode::Linear,
-        mipmap_filter: FilterMode::Linear,
-        ..default()
-    });
+    let sprite_depth_sampler = render_device.create_sampler(&SamplerDescriptor::default());
+    let occluder_sampler = render_device.create_sampler(&SamplerDescriptor::default());
 
     let shader = load_embedded_asset!(asset_server.as_ref(), "light_2d.wgsl");
     let pipeline_id = pipeline_cache.queue_render_pipeline(RenderPipelineDescriptor {
