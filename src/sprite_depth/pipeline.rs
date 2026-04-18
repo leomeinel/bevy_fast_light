@@ -124,7 +124,8 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
                 shader_defs,
                 targets: vec![Some(ColorTargetState {
                     format: TextureFormat::Rgba8Unorm,
-                    blend: Some(BlendState::ALPHA_BLENDING),
+                    // NOTE: Since we use `discard` inside of the shader, we don't need blending.
+                    blend: None,
                     write_mask: ColorWrites::RED,
                 })],
                 ..default()
