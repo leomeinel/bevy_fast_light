@@ -20,12 +20,12 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ### Occluders
 
-| Purpose                                                            | Component         | Config                    |
-| ------------------------------------------------------------------ | ----------------- | ------------------------- |
-| Light occluder blocking non-ambient light in any attached `Mesh2d` | `Light2dOccluder` | `Mesh2d` determines shape |
+| Purpose        | Component         | Config                             |
+| -------------- | ----------------- | ---------------------------------- |
+| Light occluder | `Light2dOccluder` | Attached `Mesh2d` determines shape |
 
 
-Occluders render `Sprites` above them if they are on the same or a higher z-level. Also see [Showcase](#showcase).
+`Sprites` are rendered above occluders if they are on the same or a higher z-level. Also see [Showcase](#showcase).
 
 ## Limitations
 
@@ -39,7 +39,7 @@ Take a look at [`/examples`](https://github.com/leomeinel/bevy_fast_light/tree/m
 
 I am using most features in my learning project [Slimy Mist](https://github.com/leomeinel/slimy_mist) and have also successfully implemented a day/night cycle.
 
-This also visualizes how `Sprites` are rendered on top of occluders if they are on the same or a higher z-level .
+This also visualizes how `Sprites` are rendered above occluders if they are on the same or a higher z-level.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/slimy_mist.webp?raw=true" width="400" alt="slimy mist example">
 
