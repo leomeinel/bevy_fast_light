@@ -1,12 +1,3 @@
-/*
- * File: occluder.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 //! Different occluders and modules for rendering.
 //!
 //! This renders to a scalable texture that uses the red channel for determining if an occluder exists and the green channel for its z-level.

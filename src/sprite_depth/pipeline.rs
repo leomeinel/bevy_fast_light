@@ -1,12 +1,3 @@
-/*
- * File: pipeline.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 use bevy::{
     asset::{AssetServer, Handle, load_embedded_asset},
     core_pipeline::tonemapping::get_lut_bind_group_layout_entries,

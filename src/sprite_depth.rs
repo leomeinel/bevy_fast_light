@@ -1,12 +1,6 @@
 /*
- * File: sprite_depth.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- * -----
- * Heavily inspired by: https://github.com/PVDoriginal/firefly
+ * Heavily inspired by:
+ * - https://github.com/PVDoriginal/firefly
  */
 
 //! Modules for rendering to a scalable texture that uses the red channel for z-levels of all [`Sprite`](bevy::sprite::Sprite)s.

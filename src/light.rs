@@ -1,12 +1,3 @@
-/*
- * File: light.rs
- * Author: Leopold Johannes Meinel (leo@meinel.dev)
- * -----
- * Copyright (c) 2026 Leopold Johannes Meinel & contributors
- * SPDX ID: Apache-2.0
- * URL: https://www.apache.org/licenses/LICENSE-2.0
- */
-
 //! Different light types and modules for rendering.
 //!
 //! This first renders a light map to a scalable texture and then composes this to the screen texture.
