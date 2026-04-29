@@ -42,7 +42,7 @@ pub struct FastLightPlugin {
 }
 impl Default for FastLightPlugin {
     fn default() -> Self {
-        Self { texture_scale: 0.5 }
+        Self { texture_scale: 1. }
     }
 }
 impl Plugin for FastLightPlugin {
