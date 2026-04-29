@@ -9,6 +9,10 @@
  * Heavily inspired by: https://bevy.org/examples/shaders/custom-post-processing/
  */
 
+// TODO: `light_2d` could possible just use a render phase to avoid storage buffers and
+//       improve performance since this could allow us to avoid the fullscreen rendering
+//       for that.
+
 //! [`Plugin`] for rendering lights to the screen texture.
 
 use bevy::{
