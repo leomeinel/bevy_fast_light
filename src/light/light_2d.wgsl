@@ -52,7 +52,7 @@ fn fragment(in: Light2dVertexOutput) -> @location(0) vec4<f32> {
     for (var i = 0u; i < light_meta.count; i++) {
         let light = point_lights[i];
         let dist = in.world_position - light.world_pos;
-        let dist_sq = dot(dist, dist);
+        let dist_sq = dot(dist);
 
         if dist_sq > light.outer_radius_sq {
             continue;
