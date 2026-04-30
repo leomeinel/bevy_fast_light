@@ -52,16 +52,16 @@ fn fragment(in: Light2dVertexOutput) -> @location(0) vec4<f32> {
     for (var i = 0u; i < light_meta.count; i++) {
         let light = point_lights[i];
         let dist = in.world_position - light.world_pos;
-        let dist_sq = dot(dist, dist);
+        let length_sq = dot(dist, dist);
 
-        if dist_sq > light.outer_radius_sq {
+        if length_sq > light.outer_radius_sq {
             continue;
         }
 
-        if dist_sq <= light.inner_radius_sq {
+        if length_sq <= light.inner_radius_sq {
             light_2d_color += light.color;
         } else {
-            let radius_delta_frac = (dist_sq - light.inner_radius_sq) * light.inv_radius_delta_sq;
+            let radius_delta_frac = (length_sq - light.inner_radius_sq) * light.inv_radius_delta_sq;
             let falloff = smoothstep(0., 1., 1. - radius_delta_frac);
             let attenuation = falloff * falloff;
 
