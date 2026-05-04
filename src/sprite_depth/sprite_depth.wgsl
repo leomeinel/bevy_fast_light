@@ -1,6 +1,11 @@
 #import bevy_render::maths::affine3_to_square
 #import bevy_sprite::sprite_view_bindings::view
 
+@group(1) @binding(0)
+var sprite_texture: texture_2d<f32>;
+@group(1) @binding(1)
+var sprite_sampler: sampler;
+
 // NOTE: `Rgba8Unorm` is 8 bits per channel. This lets us distinguish between 256 colors.
 //       Therefore `MAX_Z` can't be too high. `Rgba8Unorm` is apparently one of the best
 //       supported texture formats and I don't necessarily need more precision.
@@ -47,15 +52,12 @@ fn vertex(in: VertexInput) -> VertexOutput {
     let clip_position = view.clip_from_world * world_position;
     let uv = vec2<f32>(vertex_position.xy) * in.i_uv_offset_scale.zw + in.i_uv_offset_scale.xy;
 
-    return VertexOutput (
+    return VertexOutput(
         clip_position,
         uv,
         saturate(world_position.z / MAX_Z),
     );
 }
-
-@group(1) @binding(0) var sprite_texture: texture_2d<f32>;
-@group(1) @binding(1) var sprite_sampler: sampler;
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
