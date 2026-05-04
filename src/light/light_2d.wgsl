@@ -44,7 +44,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> Light2dVertexOutput {
 fn fragment(in: Light2dVertexOutput) -> @location(0) vec4<f32> {
     let sprite_depth_color = textureSample(sprite_depth_texture, sprite_depth_sampler, in.uv);
     let occluder_color = textureSample(occluder_texture, occluder_sampler, in.uv);
-    if occluder_color.r > 0.5 && occluder_color.g > sprite_depth_color.r {
+    // NOTE: We need to check `sprite_depth_color.r == 0.` because otherwise if occluders are on z-level 0 and no sprites
+    //       are rendered, the whole occluder will not be rendered.
+    if occluder_color.r > 0.5 && (occluder_color.g > sprite_depth_color.r || sprite_depth_color.r == 0.) {
         discard;
     }
 
