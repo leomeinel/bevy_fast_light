@@ -10,6 +10,6 @@ struct OccluderVertex {
 struct OccluderVertexOutput {
     @builtin(position)
     clip_position: vec4<f32>,
-    @location(1)
+    @location(0)
     normalized_z: f32,
 };
