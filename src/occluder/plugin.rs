@@ -3,10 +3,6 @@
  * - https://bevy.org/examples/shaders/custom-post-processing/
  */
 
-// TODO: Directly using the texture from `sprite_depth` here to modify the occluders might be a better idea.
-//       This would save one texture/sample input in `light_2d` and allow us to only write to the red
-//       channel in `occluder`.
-
 //! [`Plugin`] for light occlusion.
 
 use bevy::{
