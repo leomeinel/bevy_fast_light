@@ -47,7 +47,7 @@ fn vertex(in: VertexInput) -> VertexOutput {
     let clip_position = view.clip_from_world * world_position;
     let uv = vec2<f32>(vertex_position.xy) * in.i_uv_offset_scale.zw + in.i_uv_offset_scale.xy;
 
-    return VertexOutput (
+    return VertexOutput(
         clip_position,
         uv,
         saturate(world_position.z / MAX_Z),
@@ -59,9 +59,6 @@ fn vertex(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    if textureSample(sprite_texture, sprite_sampler, in.uv).a <= 0.5 {
-        discard;
-    }
-
-    return vec4<f32>(in.world_z, 0., 0., 1.);
+    let sprite_color = textureSample(sprite_texture, sprite_sampler, in.uv);
+    return vec4<f32>(in.world_z, 0., 0., 1.) * select(0., 1., sprite_color.a > 0.5);
 }
