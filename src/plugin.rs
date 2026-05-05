@@ -29,6 +29,8 @@ pub struct FastLightPlugin {
     /// Texture scale for any non-ambient light.
     ///
     /// Textures uses in rendering will be multiplied by this to get the light texture resolution.
+    ///
+    /// This currently causes artifacts for [`MeshOccluder2d`] if not set to `1.0`. Also see [this issue](https://github.com/leomeinel/bevy_fast_light/issues/6).
     pub texture_scale: f32,
 }
 impl Default for FastLightPlugin {
