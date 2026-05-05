@@ -14,7 +14,7 @@ use bevy::{
 use crate::sprite_depth::prelude::*;
 
 /// Extract [`RetainedViewEntity`]s to [`ViewSortedRenderPhases<SpriteDepthPhase>`] in render world.
-pub(super) fn extract_occluder_view_entities(
+pub(super) fn extract_sprite_depth_view_entities(
     mut sprite_depth_phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
     cameras: Extract<Query<(Entity, &Camera), With<Camera2d>>>,
     mut live_entities: Local<HashSet<RetainedViewEntity>>,

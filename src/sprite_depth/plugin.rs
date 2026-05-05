@@ -42,7 +42,7 @@ impl Plugin for SpriteDepthPlugin {
 
         render_app.add_systems(
             ExtractSchedule,
-            super::extract::extract_occluder_view_entities,
+            super::extract::extract_sprite_depth_view_entities,
         );
 
         render_app.add_systems(
