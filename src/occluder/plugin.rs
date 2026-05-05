@@ -16,7 +16,7 @@ use bevy::{
         extract_component::ExtractComponentPlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
-            AddRenderCommand, DrawFunctions, SortedRenderPhasePlugin, ViewSortedRenderPhases,
+            AddRenderCommand as _, DrawFunctions, SortedRenderPhasePlugin, ViewSortedRenderPhases,
             sort_phase_system,
         },
         render_resource::SpecializedMeshPipelines,
@@ -38,7 +38,7 @@ impl Plugin for OccluderPlugin {
             SortedRenderPhasePlugin::<OccluderPhase, Mesh2dPipeline>::new(
                 RenderDebugFlags::default(),
             ),
-            ExtractComponentPlugin::<Light2dOccluder>::default(),
+            ExtractComponentPlugin::<MeshOccluder2d>::default(),
         ));
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
@@ -63,8 +63,8 @@ impl Plugin for OccluderPlugin {
         render_app.add_systems(
             Render,
             (
-                (phase::queue_occluders).in_set(RenderSystems::Queue),
-                (sort_phase_system::<OccluderPhase>,).in_set(RenderSystems::PhaseSort),
+                phase::queue_occluders.in_set(RenderSystems::Queue),
+                sort_phase_system::<OccluderPhase>.in_set(RenderSystems::PhaseSort),
                 (
                     batch_and_prepare_sorted_render_phase::<OccluderPhase, OccluderPipeline>,
                     prepare::prepare_occluder_texture,

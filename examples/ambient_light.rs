@@ -1,4 +1,4 @@
-//! Scene with a light sky colored [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a green [`Rectangle`] as background and an amber [`PointLight2d`].
+//! Scene with a light sky colored [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a green [`Rectangle`] as background and an amber [`MeshLight2d`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -19,7 +19,7 @@ fn setup(
     commands.insert_resource(ClearColor(tailwind::NEUTRAL_500.into()));
     commands.spawn((
         Camera2d,
-        // NOTE: `AmbientLight2d` is required to be able to render `PointLight2d`.
+        // NOTE: `AmbientLight2d` is required to be able to render `MeshLight2d`.
         AmbientLight2d {
             color: Color::from(tailwind::SKY_200),
             intensity: 0.5,
@@ -32,10 +32,12 @@ fn setup(
         MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
     ));
 
-    commands.spawn(PointLight2d {
-        color: tailwind::AMBER_500.into(),
-        intensity: 1.,
-        outer_radius: 200.,
-        ..default()
-    });
+    commands.spawn((
+        MeshLight2d {
+            color: tailwind::AMBER_500.into(),
+            intensity: 1.,
+        },
+        // NOTE: `Mesh2d` is required for the shape of `MeshLight2d`.
+        Mesh2d(meshes.add(Circle::new(200.))),
+    ));
 }

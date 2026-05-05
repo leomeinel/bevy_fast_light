@@ -3,34 +3,27 @@
  * - https://bevy.org/examples/shaders/custom-post-processing/
  */
 
-// TODO: `light_2d` could possible just use a render phase to avoid storage buffers and
-//       improve performance since this could allow us to avoid the fullscreen rendering
-//       for that.
-
 //! [`Plugin`] for rendering lights to the screen texture.
 
 use bevy::{
-    app::{App, Plugin, PostUpdate},
+    app::{App, Plugin},
     asset::embedded_asset,
-    camera::{
-        primitives::Aabb,
-        visibility::{NoFrustumCulling, VisibilitySystems},
-    },
     core_pipeline::core_2d::graph::Core2d,
-    ecs::{
-        entity::Entity,
-        query::{Changed, Or, Without},
-        schedule::IntoScheduleConfigs as _,
-        system::{Commands, Query},
-    },
+    ecs::schedule::IntoScheduleConfigs as _,
     render::{
-        ExtractSchedule, Render, RenderApp, RenderStartup, RenderSystems,
+        ExtractSchedule, Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
+        batching::no_gpu_preprocessing::batch_and_prepare_sorted_render_phase,
         extract_component::UniformComponentPlugin,
         extract_resource::ExtractResourcePlugin,
-        gpu_component_array_buffer::GpuComponentArrayBufferPlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
+        render_phase::{
+            AddRenderCommand as _, DrawFunctions, SortedRenderPhasePlugin, ViewSortedRenderPhases,
+            sort_phase_system,
+        },
+        render_resource::SpecializedMeshPipelines,
     },
     shader::load_shader_library,
+    sprite_render::{Mesh2dPipeline, init_mesh_2d_pipeline},
 };
 
 use crate::{light::prelude::*, plugin::prelude::*};
@@ -44,27 +37,31 @@ impl Plugin for Light2dPlugin {
         embedded_asset!(app, "light_2d_composite.wgsl");
 
         app.add_plugins((
+            SortedRenderPhasePlugin::<Light2dPhase, Mesh2dPipeline>::new(
+                RenderDebugFlags::default(),
+            ),
             ExtractResourcePlugin::<FastLightSettings>::default(),
             UniformComponentPlugin::<ExtractedAmbientLight2d>::default(),
-            UniformComponentPlugin::<ExtractedLight2dMeta>::default(),
-            GpuComponentArrayBufferPlugin::<ExtractedPointLight2d>::default(),
         ));
-
-        app.add_systems(
-            PostUpdate,
-            update_point_light_bounds.in_set(VisibilitySystems::CalculateBounds),
-        );
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
 
-        render_app.init_resource::<Light2dTextures>();
+        render_app
+            .init_resource::<DrawFunctions<Light2dPhase>>()
+            .init_resource::<SpecializedMeshPipelines<Light2dPipeline>>()
+            .init_resource::<ViewSortedRenderPhases<Light2dPhase>>()
+            .init_resource::<Light2dTextures>()
+            .init_resource::<Light2dFragmentBindGroups>()
+            .init_resource::<Light2dUniformBuffers>();
+
+        render_app.add_render_command::<Light2dPhase, DrawLight2d>();
 
         render_app.add_systems(
             RenderStartup,
             (
-                super::pipeline::init_light_2d_pipeline,
+                super::pipeline::init_light_2d_pipeline.after(init_mesh_2d_pipeline),
                 super::pipeline::init_light_2d_composite_pipeline,
             ),
         );
@@ -72,15 +69,28 @@ impl Plugin for Light2dPlugin {
         render_app.add_systems(
             ExtractSchedule,
             (
+                super::extract::extract_light_2d_view_entities,
                 super::extract::extract_ambient_light,
-                super::extract::extract_meta,
-                super::extract::extract_point_lights,
+                super::extract::extract_mesh_lights,
             ),
         );
 
         render_app.add_systems(
             Render,
-            super::prepare::prepare_light_2d_texture.in_set(RenderSystems::PrepareResources),
+            (
+                super::phase::queue_light_2ds.in_set(RenderSystems::Queue),
+                sort_phase_system::<Light2dPhase>.in_set(RenderSystems::PhaseSort),
+                (
+                    batch_and_prepare_sorted_render_phase::<Light2dPhase, Light2dPipeline>,
+                    super::prepare::prepare_light_2d_texture,
+                    (
+                        super::prepare::prepare_light_2d_buffers,
+                        super::prepare::prepare_light_2d_fragment_bind_groups,
+                    )
+                        .chain(),
+                )
+                    .in_set(RenderSystems::PrepareResources),
+            ),
         );
 
         render_app
@@ -99,21 +109,3 @@ pub(crate) struct Light2dLabel;
 /// Label for render graph edges for [`Light2dCompositeNode`].
 #[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
 pub(crate) struct Light2dCompositeLabel;
-
-/// Update [`Aabb`] for [`PointLight2d`].
-///
-/// This allows [`PointLight2d`] to integrate with bevy native frustum culling.
-fn update_point_light_bounds(
-    light_query: Query<
-        (Entity, &PointLight2d),
-        (
-            Or<(Changed<PointLight2d>, Without<Aabb>)>,
-            Without<NoFrustumCulling>,
-        ),
-    >,
-    mut commands: Commands,
-) {
-    for (entity, light) in light_query {
-        commands.entity(entity).insert(light.aabb());
-    }
-}

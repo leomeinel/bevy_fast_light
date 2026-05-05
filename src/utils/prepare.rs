@@ -19,6 +19,7 @@ pub(crate) fn cached_scaled_2d_texture(
     render_device: &RenderDevice,
     settings: &FastLightSettings,
     view_target: &ViewTarget,
+    label: &'static str,
 ) -> CachedTexture {
     let size = view_target.main_texture().size();
     let size = Extent3d {
@@ -27,7 +28,7 @@ pub(crate) fn cached_scaled_2d_texture(
         ..size
     };
     let texture_descriptor = TextureDescriptor {
-        label: None,
+        label: Some(label).into(),
         size,
         mip_level_count: 1,
         sample_count: 1,

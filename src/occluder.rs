@@ -12,7 +12,7 @@ mod plugin;
 mod prepare;
 
 pub(super) mod prelude {
-    pub(crate) use super::Light2dOccluder;
+    pub(crate) use super::MeshOccluder2d;
     pub(super) use super::extract::{self};
     pub(super) use super::node::OccluderNode;
     pub(super) use super::phase::{self, DrawOccluder, OccluderPhase};
@@ -34,4 +34,4 @@ use bevy::{ecs::component::Component, render::extract_component::ExtractComponen
 ///
 /// This will render [`Sprite`](bevy::sprite::Sprite)s on top of the occluder if they are on the same or a higher z-level which allows the usage as a 2d shadow.
 #[derive(Component, ExtractComponent, Clone, Copy, Default)]
-pub struct Light2dOccluder;
+pub struct MeshOccluder2d;

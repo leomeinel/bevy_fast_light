@@ -20,7 +20,7 @@ use bevy::{
 
 use crate::{plugin::prelude::*, utils::prelude::*};
 
-/// [`CachedTexture`]s for [`Light2dOccluder`](crate::prelude::Light2dOccluder).
+/// [`CachedTexture`]s for [`MeshOccluder2d`](crate::prelude::MeshOccluder2d).
 #[derive(Resource, Default)]
 pub(crate) struct OccluderTextures(pub(crate) HashMap<RetainedViewEntity, CachedTexture>);
 
@@ -33,8 +33,13 @@ pub(super) fn prepare_occluder_texture(
     settings: Res<FastLightSettings>,
 ) {
     for (view_target, extracted_view) in views {
-        let texture =
-            cached_scaled_2d_texture(&mut texture_cache, &render_device, &settings, view_target);
+        let texture = cached_scaled_2d_texture(
+            &mut texture_cache,
+            &render_device,
+            &settings,
+            view_target,
+            "occluder_texture",
+        );
 
         textures
             .0

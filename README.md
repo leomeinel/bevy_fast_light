@@ -13,17 +13,16 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ### Lights
 
-| Purpose       | Component        | Config                                                  |
-| ------------- | ---------------- | ------------------------------------------------------- |
-| Ambient light | `AmbientLight2d` | `color` and `intensity`                                 |
-| Point light   | `PointLight2d`   | `color`, `intensity`, `inner_radius` and `outer_radius` |
+| Purpose       | Component        | Config                                                           |
+| ------------- | ---------------- | ---------------------------------------------------------------- |
+| Ambient light | `AmbientLight2d` | `color` and `intensity`                                          |
+| Mesh light    | `MeshLight2d`    | `color`, `intensity` and attached `Mesh2d` that determines shape |
 
 ### Occluders
 
-| Purpose        | Component         | Config                             |
-| -------------- | ----------------- | ---------------------------------- |
-| Light occluder | `Light2dOccluder` | Attached `Mesh2d` determines shape |
-
+| Purpose       | Component        | Config                                  |
+| ------------- | ---------------- | --------------------------------------- |
+| Mesh occluder | `MeshOccluder2d` | Attached `Mesh2d` that determines shape |
 
 `Sprites` are rendered above occluders if they are on the same or a higher z-level. Also see [Showcase](#showcase).
 
@@ -47,25 +46,25 @@ This also visualizes how `Sprites` are rendered above occluders if they are on t
 
 #### `ambient_light.rs`
 
-Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background and an amber `PointLight2d`.
+Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background and an amber `MeshLight2d`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/ambient_light.webp?raw=true" width="400" alt="ambient light example">
 
-#### `occluder.rs`
+#### `mesh_light.rs`
 
-Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background, an amber `PointLight2d` and a `Light2dOccluder`.
+Scene with a green `Rectangle` as background and an amber `MeshLight2d`.
 
-<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/occluder.webp?raw=true" width="400" alt="occluder example">
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/mesh_light.webp?raw=true" width="400" alt="mesh light example">
+    
+#### `mesh_occluder.rs`
 
-#### `point_light.rs`
+Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a green `Rectangle` as background, an amber `MeshLight2d` and a `MeshOccluder2d`.
 
-Scene with a green `Rectangle` as background and an amber `PointLight2d`.
-
-<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/point_light.webp?raw=true" width="400" alt="point light example">
+<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/mesh_occluder.webp?raw=true" width="400" alt="mesh occluder example">
 
 #### `texture_scale.rs`
 
-Scene with a green `Rectangle` as background and an amber `PointLight2d` using a lower `texture_scale`.
+Scene with a green `Rectangle` as background and an amber `MeshLight2d` using a lower `texture_scale`.
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/texture_scale.webp?raw=true" width="400" alt="texture scale example">
 

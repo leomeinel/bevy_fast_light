@@ -59,7 +59,7 @@ impl ViewNode for OccluderNode {
         });
 
         if let Err(err) = occluder_phase.render(&mut render_pass, world, view_entity) {
-            error!("Error encountered while rendering the stencil phase {err:?}");
+            error!("Error for occluder_phase in OccluderNode {err:?}");
         }
 
         Ok(())

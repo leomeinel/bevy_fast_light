@@ -41,8 +41,13 @@ pub(super) fn prepare_sprite_depth_texture(
     settings: Res<FastLightSettings>,
 ) {
     for (view_target, extracted_view) in views {
-        let texture =
-            cached_scaled_2d_texture(&mut texture_cache, &render_device, &settings, view_target);
+        let texture = cached_scaled_2d_texture(
+            &mut texture_cache,
+            &render_device,
+            &settings,
+            view_target,
+            "sprite_depth_texture",
+        );
 
         textures
             .0
@@ -111,7 +116,7 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
             // Images don't have dependencies
             AssetEvent::LoadedWithDependencies { .. } => {}
             AssetEvent::Unused { id } | AssetEvent::Modified { id } | AssetEvent::Removed { id } => {
-                image_bind_groups.values.remove(id);
+                image_bind_groups.0.remove(id);
             }
         };
     }
@@ -158,7 +163,7 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
                 batch_image_size = gpu_image.size_2d().as_vec2();
                 batch_image_handle = extracted_sprite.image_handle_id;
                 image_bind_groups
-                    .values
+                    .0
                     .entry(batch_image_handle)
                     .or_insert_with(|| {
                         render_device.create_bind_group(

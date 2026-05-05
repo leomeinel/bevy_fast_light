@@ -6,74 +6,74 @@
 //! Extracted [`Component`]s and systems for extraction to the render world.
 
 use bevy::{
-    camera::{Camera2d, visibility::ViewVisibility},
+    camera::{Camera, Camera2d},
+    color::{Alpha, LinearRgba},
     ecs::{
         component::Component,
+        entity::Entity,
         lifecycle::RemovedComponents,
-        query::{Changed, Or, With},
-        system::{Commands, Query, Single},
+        query::{Changed, With},
+        system::{Commands, Local, Query, ResMut, Single},
     },
-    math::{FloatPow as _, Vec2, Vec3, Vec3Swizzles as _},
-    render::{Extract, render_resource::ShaderType, sync_world::RenderEntity},
-    transform::components::GlobalTransform,
+    mesh::Mesh2d,
+    platform::collections::HashSet,
+    render::{
+        Extract, render_phase::ViewSortedRenderPhases, render_resource::ShaderType,
+        sync_world::RenderEntity, view::RetainedViewEntity,
+    },
     utils::default,
 };
+use bytemuck::{Pod, Zeroable};
 
-use crate::{light::prelude::*, utils::prelude::*};
+use crate::light::prelude::*;
 
 /// [`ShaderType`] that gets extracted to the render world for [`AmbientLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
 pub(super) struct ExtractedAmbientLight2d {
-    color: Vec3,
-    pub(super) _padding: f32,
+    color: LinearRgba,
 }
 impl From<AmbientLight2d> for ExtractedAmbientLight2d {
     fn from(light: AmbientLight2d) -> Self {
-        let color = light.color.to_scaled_vec3(light.intensity);
-        Self { color, ..default() }
-    }
-}
-
-/// [`ShaderType`] that gets extracted to the render world for [`PointLight2d`].
-#[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
-pub(super) struct ExtractedPointLight2d {
-    pub(super) color: Vec3,
-    pub(super) inner_radius_sq: f32,
-    pub(super) world_pos: Vec2,
-    pub(super) outer_radius_sq: f32,
-    pub(super) inv_radius_delta_sq: f32,
-}
-impl From<PointLight2d> for ExtractedPointLight2d {
-    fn from(light: PointLight2d) -> Self {
-        let color = light.color.to_scaled_vec3(light.intensity);
-        let inner_radius_sq = light.inner_radius.squared();
-        let outer_radius_sq = light.outer_radius.squared();
-        let inv_radius_delta_sq = 1. / (outer_radius_sq - inner_radius_sq).max(1.);
         Self {
-            color,
-            inner_radius_sq,
-            outer_radius_sq,
-            inv_radius_delta_sq,
+            color: (light.color.to_linear() * light.intensity).with_alpha(1.),
             ..default()
         }
     }
 }
-impl ExtractedPointLight2d {
-    fn with_world_pos(self, world_pos: Vec2) -> Self {
-        Self { world_pos, ..self }
+
+/// [`ShaderType`] that gets extracted to the render world for [`MeshLight2d`].
+#[repr(C)]
+#[derive(Component, Default, Clone, Copy, ShaderType, Debug, Pod, Zeroable)]
+pub(crate) struct ExtractedMeshLight2d {
+    pub(super) color: LinearRgba,
+}
+impl From<MeshLight2d> for ExtractedMeshLight2d {
+    fn from(light: MeshLight2d) -> Self {
+        Self {
+            color: (light.color.to_linear() * light.intensity).with_alpha(1.),
+            ..default()
+        }
     }
 }
 
-/// [`ShaderType`] that gets extracted to the render world with metadata related to lights.
-#[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
-pub(super) struct ExtractedLight2dMeta {
-    pub(super) count: u32,
-    pub(super) _padding: Vec3,
-}
-impl From<u32> for ExtractedLight2dMeta {
-    fn from(count: u32) -> Self {
-        Self { count, ..default() }
+/// Extract [`RetainedViewEntity`]s to [`ViewSortedRenderPhases<Light2dPhase>`] in render world.
+pub(super) fn extract_light_2d_view_entities(
+    mut light_phases: ResMut<ViewSortedRenderPhases<Light2dPhase>>,
+    cameras: Extract<Query<(Entity, &Camera), With<Camera2d>>>,
+    mut live_entities: Local<HashSet<RetainedViewEntity>>,
+) {
+    live_entities.clear();
+    for (main_entity, camera) in &cameras {
+        if !camera.is_active {
+            continue;
+        }
+        // NOTE: This is the main camera, so we use the first subview index (0)
+        let retained_view_entity = RetainedViewEntity::new(main_entity.into(), None, 0);
+        light_phases.insert_or_clear(retained_view_entity);
+        live_entities.insert(retained_view_entity);
     }
+
+    light_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
 }
 
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.
@@ -102,55 +102,10 @@ pub(super) fn extract_ambient_light(
         .insert(ExtractedAmbientLight2d::from(*ambient));
 }
 
-/// Extract [`ExtractedLight2dMeta`] to render world.
-pub(super) fn extract_meta(
-    removed_lights: Extract<RemovedComponents<PointLight2d>>,
-    ambient: Extract<Single<&RenderEntity, (With<AmbientLight2d>, With<Camera2d>)>>,
-    light_changed_query: Extract<
-        Query<
-            (),
-            (
-                Or<(
-                    Changed<PointLight2d>,
-                    Changed<GlobalTransform>,
-                    Changed<ViewVisibility>,
-                )>,
-                With<PointLight2d>,
-            ),
-        >,
-    >,
-    light_query: Extract<Query<&ViewVisibility, With<PointLight2d>>>,
-    mut commands: Commands,
-) {
-    if light_changed_query.is_empty() && removed_lights.is_empty() {
-        return;
-    }
-    let render_entity = **ambient;
-    let count = light_query.iter().filter(|v| v.get()).count() as u32;
-
-    commands
-        .entity(**render_entity)
-        .insert(ExtractedLight2dMeta::from(count));
-}
-
-/// Extract [`PointLight2d`] as [`ExtractedPointLight2d`] to render world.
-pub(super) fn extract_point_lights(
-    mut removed_lights: Extract<RemovedComponents<PointLight2d>>,
-    light_query: Extract<
-        Query<
-            (
-                &RenderEntity,
-                &PointLight2d,
-                &GlobalTransform,
-                &ViewVisibility,
-            ),
-            Or<(
-                Changed<PointLight2d>,
-                Changed<GlobalTransform>,
-                Changed<ViewVisibility>,
-            )>,
-        >,
-    >,
+/// Extract [`MeshLight2d`] as [`ExtractedMeshLight2d`] to render world.
+pub(super) fn extract_mesh_lights(
+    mut removed_lights: Extract<RemovedComponents<MeshLight2d>>,
+    light_query: Extract<Query<(&RenderEntity, &MeshLight2d), With<Mesh2d>>>,
     render_entity_query: Extract<Query<&RenderEntity>>,
     mut commands: Commands,
 ) {
@@ -161,19 +116,13 @@ pub(super) fn extract_point_lights(
         };
         commands
             .entity(**render_entity)
-            .remove::<ExtractedPointLight2d>();
+            .remove::<ExtractedMeshLight2d>();
     }
 
     // Insert new extracted components
-    for (render_entity, light, transform, visibility) in &light_query {
-        if !visibility.get() {
-            commands
-                .entity(**render_entity)
-                .remove::<ExtractedPointLight2d>();
-            continue;
-        }
-        commands.entity(**render_entity).insert(
-            ExtractedPointLight2d::from(*light).with_world_pos(transform.translation().xy()),
-        );
+    for (render_entity, light) in &light_query {
+        commands
+            .entity(**render_entity)
+            .insert(ExtractedMeshLight2d::from(*light));
     }
 }

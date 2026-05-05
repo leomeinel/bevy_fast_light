@@ -1,4 +1,4 @@
-//! Scene with a light sky colored [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a green [`Rectangle`] as background, an amber [`PointLight2d`] and a [`Light2dOccluder`].
+//! Scene with a light sky colored [`AmbientLight2d`] with a lower [`AmbientLight2d::intensity`], a green [`Rectangle`] as background, an amber [`MeshLight2d`] and a [`MeshOccluder2d`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -19,7 +19,7 @@ fn setup(
     commands.insert_resource(ClearColor(tailwind::NEUTRAL_500.into()));
     commands.spawn((
         Camera2d,
-        // NOTE: `AmbientLight2d` is required to be able to render `PointLight2d`.
+        // NOTE: `AmbientLight2d` is required to be able to render `MeshLight2d`.
         AmbientLight2d {
             color: Color::from(tailwind::SKY_200),
             intensity: 0.5,
@@ -32,17 +32,18 @@ fn setup(
         MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
     ));
 
-    commands.spawn(PointLight2d {
-        color: tailwind::AMBER_500.into(),
-        intensity: 1.,
-        outer_radius: 200.,
-        ..default()
-    });
+    commands.spawn((
+        MeshLight2d {
+            color: tailwind::AMBER_500.into(),
+            intensity: 1.,
+        },
+        // NOTE: `Mesh2d` is required for the shape of `MeshLight2d`.
+        Mesh2d(meshes.add(Circle::new(200.))),
+    ));
 
     commands.spawn((
-        // NOTE: `Light2dOccluder` and `Mesh2d` are required to add light occluders.
-        //       The shape of `Mesh2d` is the occluded shape.
-        Light2dOccluder,
-        Mesh2d(meshes.add(Ellipse::new(40., 30.))),
+        MeshOccluder2d,
+        // NOTE: `Mesh2d` is required for the shape of `MeshOccluder2d`.
+        Mesh2d(meshes.add(Ellipse::new(80., 40.))),
     ));
 }

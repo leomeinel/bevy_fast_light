@@ -122,9 +122,7 @@ pub(super) struct SpriteDepthBatch {
 ///
 /// Last updated from [`bevy`]@0.18.1.
 #[derive(Resource, Default)]
-pub(super) struct SpriteDepthImageBindGroups {
-    values: HashMap<AssetId<Image>, BindGroup>,
-}
+pub(super) struct SpriteDepthImageBindGroups(HashMap<AssetId<Image>, BindGroup>);
 
 /// Custom implementation of [`SetSpriteTextureBindGroup`](bevy::sprite_render::SetSpriteTextureBindGroup).
 ///
@@ -141,22 +139,15 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetSpriteDepthTextureBin
         item: &P,
         view: ROQueryItem<'w, '_, Self::ViewQuery>,
         _entity: Option<()>,
-        (image_bind_groups, batches): SystemParamItem<'w, '_, Self::Param>,
+        (bind_groups, batches): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let image_bind_groups = image_bind_groups.into_inner();
+        let bind_groups = bind_groups.into_inner();
         let Some(batch) = batches.get(&(view.retained_view_entity, item.entity())) else {
             return RenderCommandResult::Skip;
         };
 
-        pass.set_bind_group(
-            I,
-            image_bind_groups
-                .values
-                .get(&batch.image_handle_id)
-                .unwrap(),
-            &[],
-        );
+        pass.set_bind_group(I, bind_groups.0.get(&batch.image_handle_id).unwrap(), &[]);
         RenderCommandResult::Success
     }
 }

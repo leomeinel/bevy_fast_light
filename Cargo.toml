@@ -19,7 +19,6 @@ bevy = { version = "0.18", default-features = false, features = [
  "bevy_log",
  "bevy_sprite_render",
 ] }
-smallvec = "1.15"
 fixedbitset = "0.5"
 bytemuck = "1.25"
 
@@ -116,12 +115,12 @@ name = "ambient_light"
 path = "examples/ambient_light.rs"
 
 [[example]]
-name = "occluder"
-path = "examples/occluder.rs"
+name = "mesh_light"
+path = "examples/mesh_light.rs"
 
 [[example]]
-name = "point_light"
-path = "examples/point_light.rs"
+name = "mesh_occluder"
+path = "examples/mesh_occluder.rs"
 
 [[example]]
 name = "texture_scale"

@@ -6,32 +6,39 @@
 
 mod extract;
 mod node;
+mod phase;
 mod pipeline;
 mod plugin;
 mod prepare;
 
 pub(super) mod prelude {
-    pub(super) use super::extract::{
-        ExtractedAmbientLight2d, ExtractedLight2dMeta, ExtractedPointLight2d,
-    };
+    pub(super) use super::extract::{ExtractedAmbientLight2d, ExtractedMeshLight2d};
     pub(super) use super::node::{Light2dCompositeNode, Light2dNode};
+    pub(super) use super::phase::{DrawLight2d, Light2dPhase};
     pub(super) use super::pipeline::{Light2dCompositePipeline, Light2dPipeline};
     pub(crate) use super::plugin::{Light2dCompositeLabel, Light2dLabel, Light2dPlugin};
-    pub(super) use super::prepare::Light2dTextures;
-    pub(crate) use super::{AmbientLight2d, PointLight2d};
+    pub(super) use super::prepare::{Light2dTextures, Light2dUniformBuffers};
+    pub(crate) use super::{AmbientLight2d, MeshLight2d};
+    pub(super) use super::{Light2dFragmentBindGroups, SetLight2dFragmentBindGroup};
 }
 
 use bevy::{
-    camera::{
-        primitives::Aabb,
-        visibility::{Visibility, VisibilityClass, add_visibility_class},
-    },
     color::Color,
-    ecs::component::Component,
-    math::Vec3A,
+    ecs::{
+        component::Component,
+        entity::Entity,
+        query::ROQueryItem,
+        resource::Resource,
+        system::{SystemParamItem, lifetimeless::SRes},
+    },
+    platform::collections::HashMap,
     reflect::Reflect,
-    render::sync_world::SyncToRenderWorld,
-    transform::components::Transform,
+    render::{
+        render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
+        render_resource::BindGroup,
+        sync_world::SyncToRenderWorld,
+        view::ExtractedView,
+    },
 };
 
 /// Ambient light for fullscreen lighting in a 2D environment.
@@ -63,47 +70,60 @@ impl Default for AmbientLight2d {
     }
 }
 
-/// Point light for area lighting in a 2D environment.
+/// Mesh light for area lighting in a 2D environment.
+///
+/// This is meant to be added to a [`Mesh2d`](bevy::mesh::Mesh2d) which will determine the lit shape.
+///
+/// The lit shape is an ellipse in the center that is influenced by the width and height of the [`Mesh2d`](bevy::mesh::Mesh2d). Therefore in most [`Mesh2d`](bevy::mesh::Mesh2d)s, the corners will not be lit.
 ///
 /// ## Formula
 ///
-/// color = src_color * (ambient_color + [`PointLight2d::color`] * [`PointLight2d::intensity`] * attenuation).
+/// color = src_color * (ambient_color + [`MeshLight2d::color`] * [`MeshLight2d::intensity`] * attenuation).
 ///
 /// ## Note
 ///
-/// attenuation is influenced by [`PointLight2d::inner_radius`] and [`PointLight2d::outer_radius`].
+/// attenuation decreases smoothly from the center outwards.
 #[derive(Component, Reflect, Clone, Copy)]
-#[require(SyncToRenderWorld, Transform, Visibility, VisibilityClass)]
-#[component(on_add = add_visibility_class::<Self>)]
-pub struct PointLight2d {
+#[require(SyncToRenderWorld)]
+pub struct MeshLight2d {
     /// The [`Color`] of the light.
     pub color: Color,
     /// The intensity of the light.
     pub intensity: f32,
-    /// The inner radius of the light.
-    ///
-    /// `attenuation` is always 1 (actually it is disregarded entirely).
-    pub inner_radius: f32,
-    /// The outer radius of the light.
-    ///
-    /// `attenuation` starts at 1 and then decreases smoothly if outside of [`PointLight2d::inner_radius`] until it reaches 0.
-    pub outer_radius: f32,
 }
-impl PointLight2d {
-    fn aabb(&self) -> Aabb {
-        Aabb {
-            center: Vec3A::ZERO,
-            half_extents: Vec3A::new(self.outer_radius, self.outer_radius, 0.),
-        }
-    }
-}
-impl Default for PointLight2d {
+impl Default for MeshLight2d {
     fn default() -> Self {
         Self {
             color: Color::WHITE,
             intensity: 1.,
-            inner_radius: 0.,
-            outer_radius: 64.,
         }
+    }
+}
+
+/// [`BindGroup`]s mapped to [`MeshLight2d`] [`Entity`]s.
+#[derive(Resource, Default)]
+pub(super) struct Light2dFragmentBindGroups(pub(super) HashMap<Entity, BindGroup>);
+
+/// Set [`BindGroup`]s from [`Light2dFragmentBindGroups`] for [`DrawLight2d`](crate::light::prelude::DrawLight2d).
+pub(super) struct SetLight2dFragmentBindGroup<const I: usize>;
+impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetLight2dFragmentBindGroup<I> {
+    type Param = SRes<Light2dFragmentBindGroups>;
+    type ViewQuery = &'static ExtractedView;
+    type ItemQuery = ();
+
+    fn render<'w>(
+        item: &P,
+        _view: ROQueryItem<'w, '_, Self::ViewQuery>,
+        _entity: Option<()>,
+        bind_groups: SystemParamItem<'w, '_, Self::Param>,
+        pass: &mut TrackedRenderPass<'w>,
+    ) -> RenderCommandResult {
+        let bind_groups = bind_groups.into_inner();
+        let Some(bind_group) = bind_groups.0.get(&item.entity()) else {
+            return RenderCommandResult::Skip;
+        };
+
+        pass.set_bind_group(I, &bind_group, &[]);
+        RenderCommandResult::Success
     }
 }

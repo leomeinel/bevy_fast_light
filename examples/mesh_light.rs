@@ -1,4 +1,4 @@
-//! Scene with a green [`Rectangle`] as background and an amber [`PointLight2d`].
+//! Scene with a green [`Rectangle`] as background and an amber [`MeshLight2d`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -19,7 +19,7 @@ fn setup(
     commands.insert_resource(ClearColor(tailwind::NEUTRAL_500.into()));
     commands.spawn((
         Camera2d,
-        // NOTE: `AmbientLight2d` is required to be able to render `PointLight2d`.
+        // NOTE: `AmbientLight2d` is required to be able to render `MeshLight2d`.
         AmbientLight2d::default(),
     ));
 
@@ -29,12 +29,14 @@ fn setup(
         MeshMaterial2d(materials.add(Color::from(tailwind::GREEN_500))),
     ));
 
-    commands.spawn(PointLight2d {
-        color: tailwind::AMBER_500.into(),
-        // NOTE: With `AmbientLight2d` intensity at 1., you might have to increase `PointLight2d` intensity.
-        //       Otherwise it will not be visible, just like shining a flashlight at day vs. at night.
-        intensity: 2.,
-        outer_radius: 200.,
-        ..default()
-    });
+    commands.spawn((
+        MeshLight2d {
+            color: tailwind::AMBER_500.into(),
+            // NOTE: With `AmbientLight2d` intensity at 1., you might have to increase `MeshLight2d` intensity.
+            //       Otherwise it will not be visible, just like shining a flashlight at day vs. at night.
+            intensity: 2.,
+        },
+        // NOTE: `Mesh2d` is required for the shape of `MeshLight2d`.
+        Mesh2d(meshes.add(Ellipse::new(200., 100.))),
+    ));
 }
