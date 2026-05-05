@@ -61,9 +61,8 @@ fn vertex(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    if textureSample(sprite_texture, sprite_sampler, in.uv).a <= 0.5 {
-        discard;
-    }
+    let sprite_color = textureSample(sprite_texture, sprite_sampler, in.uv);
+    let is_opaque = sprite_color.a > 0.5;
 
-    return vec4<f32>(in.world_z, 0., 0., 1.);
+    return vec4<f32>(in.world_z, 0., 0., 1.) * select(0., 1., is_opaque);
 }
