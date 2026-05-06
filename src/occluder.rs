@@ -13,13 +13,11 @@ mod prepare;
 
 pub(super) mod prelude {
     pub(crate) use super::MeshOccluder2d;
-    pub(super) use super::extract::{self};
     pub(super) use super::node::OccluderNode;
-    pub(super) use super::phase::{self, DrawOccluder, OccluderPhase};
-    pub(super) use super::pipeline::{self, OccluderPipeline};
+    pub(super) use super::phase::{DrawOccluder, OccluderPhase};
+    pub(super) use super::pipeline::OccluderPipeline;
     pub(crate) use super::plugin::{OccluderLabel, OccluderPlugin, OccluderSet};
     pub(crate) use super::prepare::OccluderTextures;
-    pub(super) use super::prepare::{self};
 }
 
 use bevy::{ecs::component::Component, render::extract_component::ExtractComponent};

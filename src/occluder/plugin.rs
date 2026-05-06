@@ -55,19 +55,22 @@ impl Plugin for OccluderPlugin {
 
         render_app.add_systems(
             RenderStartup,
-            pipeline::init_occluder_pipeline.after(init_mesh_2d_pipeline),
+            super::pipeline::init_occluder_pipeline.after(init_mesh_2d_pipeline),
         );
 
-        render_app.add_systems(ExtractSchedule, extract::extract_occluder_view_entities);
+        render_app.add_systems(
+            ExtractSchedule,
+            super::extract::extract_occluder_view_entities,
+        );
 
         render_app.add_systems(
             Render,
             (
-                phase::queue_occluders.in_set(RenderSystems::Queue),
+                super::phase::queue_occluders.in_set(RenderSystems::Queue),
                 sort_phase_system::<OccluderPhase>.in_set(RenderSystems::PhaseSort),
                 (
                     batch_and_prepare_sorted_render_phase::<OccluderPhase, OccluderPipeline>,
-                    prepare::prepare_occluder_texture.in_set(OccluderSet::PrepareTexture),
+                    super::prepare::prepare_occluder_texture.in_set(OccluderSet::PrepareTexture),
                 )
                     .in_set(RenderSystems::PrepareResources),
             ),
