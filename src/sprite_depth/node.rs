@@ -12,7 +12,7 @@ use bevy::{
     },
 };
 
-use crate::sprite_depth::prelude::*;
+use crate::{occluder::prelude::*, sprite_depth::prelude::*};
 
 /// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture from [`SpriteDepthTextures`].
 #[derive(Default)]
@@ -29,10 +29,10 @@ impl ViewNode for SpriteDepthNode {
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.view_entity();
         let sprite_depth_phases = world.resource::<ViewSortedRenderPhases<SpriteDepthPhase>>();
-        let sprite_depth_textures = world.resource::<SpriteDepthTextures>();
-        let (Some(sprite_depth_phase), Some(sprite_depth_texture)) = (
+        let occluder_textures = world.resource::<OccluderTextures>();
+        let (Some(sprite_depth_phase), Some(occluder_texture)) = (
             sprite_depth_phases.get(&extracted_view.retained_view_entity),
-            sprite_depth_textures
+            occluder_textures
                 .0
                 .get(&extracted_view.retained_view_entity),
         ) else {
@@ -42,7 +42,7 @@ impl ViewNode for SpriteDepthNode {
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
             label: Some("sprite_depth_render_pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
-                view: &sprite_depth_texture.default_view,
+                view: &occluder_texture.default_view,
                 depth_slice: None,
                 resolve_target: None,
                 ops: Operations::default(),

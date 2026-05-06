@@ -51,7 +51,11 @@ impl ViewNode for OccluderNode {
                 view: &occluder_texture.default_view,
                 depth_slice: None,
                 resolve_target: None,
-                ops: Operations::default(),
+                // NOTE: We need to load here because we need the value written by `sprite_depth`.
+                ops: Operations {
+                    load: LoadOp::Load,
+                    store: StoreOp::Store,
+                },
             })],
             depth_stencil_attachment: None,
             timestamp_writes: None,

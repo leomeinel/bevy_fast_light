@@ -9,7 +9,7 @@ use bevy::{
     app::{App, Plugin},
     asset::embedded_asset,
     core_pipeline::core_2d::graph::Core2d,
-    ecs::schedule::IntoScheduleConfigs as _,
+    ecs::schedule::{IntoScheduleConfigs as _, SystemSet},
     render::{
         ExtractSchedule, Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
         batching::no_gpu_preprocessing::batch_and_prepare_sorted_render_phase,
@@ -67,7 +67,7 @@ impl Plugin for OccluderPlugin {
                 sort_phase_system::<OccluderPhase>.in_set(RenderSystems::PhaseSort),
                 (
                     batch_and_prepare_sorted_render_phase::<OccluderPhase, OccluderPipeline>,
-                    prepare::prepare_occluder_texture,
+                    prepare::prepare_occluder_texture.in_set(OccluderSet::PrepareTexture),
                 )
                     .in_set(RenderSystems::PrepareResources),
             ),
@@ -80,3 +80,9 @@ impl Plugin for OccluderPlugin {
 /// Label for render graph edges for [`OccluderNode`].
 #[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
 pub(crate) struct OccluderLabel;
+
+/// A system set for ordering occluder systems.
+#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub(crate) enum OccluderSet {
+    PrepareTexture,
+}

@@ -38,7 +38,6 @@ use crate::light::prelude::*;
 pub(super) struct Light2dPipeline {
     pub(super) mesh_pipeline: Mesh2dPipeline,
     pub(super) fragment_layout: BindGroupLayoutDescriptor,
-    pub(super) sprite_depth_sampler: Sampler,
     pub(super) occluder_sampler: Sampler,
     pub(super) shader: Handle<Shader>,
 }
@@ -130,8 +129,6 @@ pub(super) fn init_light_2d_pipeline(
             (
                 texture_2d(TextureSampleType::Float { filterable: true }),
                 sampler(SamplerBindingType::Filtering),
-                texture_2d(TextureSampleType::Float { filterable: true }),
-                sampler(SamplerBindingType::Filtering),
                 uniform_buffer::<ExtractedMeshLight2d>(false),
             ),
         ),
@@ -140,7 +137,6 @@ pub(super) fn init_light_2d_pipeline(
     commands.insert_resource(Light2dPipeline {
         mesh_pipeline: mesh_pipeline.clone(),
         fragment_layout,
-        sprite_depth_sampler: render_device.create_sampler(&SamplerDescriptor::default()),
         occluder_sampler: render_device.create_sampler(&SamplerDescriptor::default()),
         shader: load_embedded_asset!(asset_server.as_ref(), "light_2d.wgsl"),
     });

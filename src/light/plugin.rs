@@ -26,7 +26,7 @@ use bevy::{
     sprite_render::{Mesh2dPipeline, init_mesh_2d_pipeline},
 };
 
-use crate::{light::prelude::*, plugin::prelude::*};
+use crate::{light::prelude::*, occluder::prelude::*, plugin::prelude::*};
 
 /// [`Plugin`] for rendering lights to the screen texture.
 pub(crate) struct Light2dPlugin;
@@ -85,7 +85,8 @@ impl Plugin for Light2dPlugin {
                     super::prepare::prepare_light_2d_texture,
                     (
                         super::prepare::prepare_light_2d_buffers,
-                        super::prepare::prepare_light_2d_fragment_bind_groups,
+                        super::prepare::prepare_light_2d_fragment_bind_groups
+                            .after(OccluderSet::PrepareTexture),
                     )
                         .chain(),
                 )

@@ -47,7 +47,7 @@ impl SpecializedMeshPipeline for OccluderPipeline {
         fragment.targets = vec![Some(ColorTargetState {
             format: TextureFormat::Rgba8Unorm,
             blend: None,
-            write_mask: ColorWrites::RED | ColorWrites::GREEN,
+            write_mask: ColorWrites::GREEN | ColorWrites::BLUE,
         })];
 
         descriptor.multisample = MultisampleState::default();

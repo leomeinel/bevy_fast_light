@@ -24,10 +24,7 @@ use bevy::{
 };
 use bytemuck::cast_slice;
 
-use crate::{
-    light::prelude::*, occluder::prelude::*, plugin::prelude::*, sprite_depth::prelude::*,
-    utils::prelude::*,
-};
+use crate::{light::prelude::*, occluder::prelude::*, plugin::prelude::*, utils::prelude::*};
 
 /// [`CachedTexture`]s for [MeshLight2d].
 #[derive(Resource, Default)]
@@ -90,18 +87,13 @@ pub(super) fn prepare_light_2d_fragment_bind_groups(
     pipeline_cache: Res<PipelineCache>,
     light_pipeline: Res<Light2dPipeline>,
     occluder_textures: Res<OccluderTextures>,
-    sprite_depth_textures: Res<SpriteDepthTextures>,
 ) {
     light_bind_groups.0.clear();
     for extracted_view in &views {
-        let (Some(occluder_texture), Some(sprite_depth_texture)) = (
-            occluder_textures
-                .0
-                .get(&extracted_view.retained_view_entity),
-            sprite_depth_textures
-                .0
-                .get(&extracted_view.retained_view_entity),
-        ) else {
+        let Some(occluder_texture) = occluder_textures
+            .0
+            .get(&extracted_view.retained_view_entity)
+        else {
             continue;
         };
 
@@ -114,8 +106,6 @@ pub(super) fn prepare_light_2d_fragment_bind_groups(
                 "light_2d_fragment_bind_group",
                 &pipeline_cache.get_bind_group_layout(&light_pipeline.fragment_layout),
                 &BindGroupEntries::sequential((
-                    &sprite_depth_texture.default_view,
-                    &light_pipeline.sprite_depth_sampler,
                     &occluder_texture.default_view,
                     &light_pipeline.occluder_sampler,
                     light_buffer.as_entire_binding(),

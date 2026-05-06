@@ -116,7 +116,7 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
                 targets: vec![Some(ColorTargetState {
                     format: TextureFormat::Rgba8Unorm,
                     // NOTE: This is needed since we need to alpha blend the rendered sprite z-levels.
-                    //       Since we are multiplying everything in `light_2d` by `select`, we need `BlendState::PREMULTIPLIED_ALPHA_BLENDING`.
+                    //       Since we are multiplying everything in `sprite_depth` by `select`, we need `BlendState::PREMULTIPLIED_ALPHA_BLENDING`.
                     blend: Some(BlendState::PREMULTIPLIED_ALPHA_BLENDING),
                     write_mask: ColorWrites::RED,
                 })],

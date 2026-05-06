@@ -6,18 +6,16 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        resource::Resource,
         system::{Commands, Query, Res, ResMut},
     },
     math::{Affine3A, Quat, Vec2, Vec4},
-    platform::collections::HashMap,
     render::{
         render_asset::RenderAssets,
         render_phase::{PhaseItem as _, ViewSortedRenderPhases},
         render_resource::{BindGroupEntries, PipelineCache},
         renderer::{RenderDevice, RenderQueue},
-        texture::{CachedTexture, FallbackImage, GpuImage, TextureCache},
-        view::{ExtractedView, RetainedViewEntity, ViewTarget, ViewUniforms},
+        texture::{FallbackImage, GpuImage},
+        view::{ExtractedView, ViewUniforms},
     },
     sprite::SpriteScalingMode,
     sprite_render::{
@@ -26,34 +24,7 @@ use bevy::{
     },
 };
 
-use crate::{plugin::prelude::*, sprite_depth::prelude::*, utils::prelude::*};
-
-/// [`CachedTexture`]s for [`Sprite`](bevy::sprite::Sprite) depth.
-#[derive(Resource, Default)]
-pub(crate) struct SpriteDepthTextures(pub(crate) HashMap<RetainedViewEntity, CachedTexture>);
-
-/// Prepare scaled [`CachedTexture`]s and insert into [`SpriteDepthTextures`].
-pub(super) fn prepare_sprite_depth_texture(
-    views: Query<(&ViewTarget, &ExtractedView)>,
-    mut textures: ResMut<SpriteDepthTextures>,
-    mut texture_cache: ResMut<TextureCache>,
-    render_device: Res<RenderDevice>,
-    settings: Res<FastLightSettings>,
-) {
-    for (view_target, extracted_view) in views {
-        let texture = cached_scaled_2d_texture(
-            &mut texture_cache,
-            &render_device,
-            &settings,
-            view_target,
-            "sprite_depth_texture",
-        );
-
-        textures
-            .0
-            .insert(extracted_view.retained_view_entity, texture);
-    }
-}
+use crate::sprite_depth::prelude::*;
 
 /// Prepare [`SpriteViewBindGroup`].
 ///

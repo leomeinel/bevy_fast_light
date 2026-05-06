@@ -31,7 +31,6 @@ impl Plugin for SpriteDepthPlugin {
             .init_resource::<DrawFunctions<SpriteDepthPhase>>()
             .init_resource::<SpecializedRenderPipelines<SpriteDepthPipeline>>()
             .init_resource::<ViewSortedRenderPhases<SpriteDepthPhase>>()
-            .init_resource::<SpriteDepthTextures>()
             .init_resource::<SpriteDepthMeta>()
             .init_resource::<SpriteDepthBatches>()
             .init_resource::<SpriteDepthImageBindGroups>();
@@ -51,7 +50,6 @@ impl Plugin for SpriteDepthPlugin {
                 super::phase::queue_sprite_depths.in_set(RenderSystems::Queue),
                 sort_phase_system::<SpriteDepthPhase>.in_set(RenderSystems::PhaseSort),
                 (
-                    super::prepare::prepare_sprite_depth_texture,
                     super::prepare::prepare_sprite_depth_view_bind_groups,
                     super::prepare::prepare_sprite_depth_image_bind_groups,
                 )

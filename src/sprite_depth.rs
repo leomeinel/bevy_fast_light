@@ -19,7 +19,6 @@ pub(crate) mod prelude {
     pub(super) use super::phase::{DrawSpriteDepth, SpriteDepthPhase};
     pub(super) use super::pipeline::SpriteDepthPipeline;
     pub(crate) use super::plugin::{SpriteDepthLabel, SpriteDepthPlugin};
-    pub(crate) use super::prepare::SpriteDepthTextures;
     pub(super) use super::{
         DrawSpriteDepthBatch, SetSpriteDepthTextureBindGroup, SpriteDepthBatch, SpriteDepthBatches,
         SpriteDepthImageBindGroups, SpriteDepthInstance, SpriteDepthMeta,

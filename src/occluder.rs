@@ -17,7 +17,7 @@ pub(super) mod prelude {
     pub(super) use super::node::OccluderNode;
     pub(super) use super::phase::{self, DrawOccluder, OccluderPhase};
     pub(super) use super::pipeline::{self, OccluderPipeline};
-    pub(crate) use super::plugin::{OccluderLabel, OccluderPlugin};
+    pub(crate) use super::plugin::{OccluderLabel, OccluderPlugin, OccluderSet};
     pub(crate) use super::prepare::OccluderTextures;
     pub(super) use super::prepare::{self};
 }
