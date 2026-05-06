@@ -1,5 +1,6 @@
 //! Simple 2D lighting for Bevy focused on performance over features.
 
+mod extract;
 mod light;
 mod occluder;
 mod plugin;

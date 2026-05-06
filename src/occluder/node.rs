@@ -11,7 +11,7 @@ use bevy::{
     log::error,
     render::{
         render_graph::{NodeRunError, RenderGraphContext, ViewNode},
-        render_phase::ViewSortedRenderPhases,
+        render_phase::ViewBinnedRenderPhases,
         render_resource::*,
         renderer::RenderContext,
         view::ExtractedView,
@@ -34,7 +34,7 @@ impl ViewNode for OccluderNode {
         world: &World,
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.view_entity();
-        let occluder_phases = world.resource::<ViewSortedRenderPhases<OccluderPhase>>();
+        let occluder_phases = world.resource::<ViewBinnedRenderPhases<OccluderPhase>>();
         let occluder_textures = world.resource::<OccluderTextures>();
         let (Some(occluder_phase), Some(occluder_texture)) = (
             occluder_phases.get(&extracted_view.retained_view_entity),

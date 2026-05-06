@@ -7,7 +7,6 @@
 //!
 //! This is the first render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 
-mod extract;
 mod node;
 mod phase;
 mod pipeline;
@@ -16,7 +15,8 @@ mod prepare;
 
 pub(crate) mod prelude {
     pub(super) use super::node::SpriteDepthNode;
-    pub(super) use super::phase::{DrawSpriteDepth, SpriteDepthPhase};
+    pub(super) use super::phase::DrawSpriteDepth;
+    pub(crate) use super::phase::SpriteDepthPhase;
     pub(super) use super::pipeline::SpriteDepthPipeline;
     pub(crate) use super::plugin::{SpriteDepthLabel, SpriteDepthPlugin};
     pub(super) use super::{
@@ -58,8 +58,8 @@ use crate::light::prelude::*;
 #[derive(Copy, Clone, Pod, Zeroable)]
 pub(super) struct SpriteDepthInstance {
     // Affine 4x3 transposed to 3x4
-    pub i_model_transpose: [Vec4; 3],
-    pub i_uv_offset_scale: [f32; 4],
+    i_model_transpose: [Vec4; 3],
+    i_uv_offset_scale: [f32; 4],
 }
 impl SpriteDepthInstance {
     #[inline]

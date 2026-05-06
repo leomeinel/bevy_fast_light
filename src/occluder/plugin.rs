@@ -11,12 +11,11 @@ use bevy::{
     core_pipeline::core_2d::graph::Core2d,
     ecs::schedule::{IntoScheduleConfigs as _, SystemSet},
     render::{
-        ExtractSchedule, Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
+        Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
         extract_component::ExtractComponentPlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
-            AddRenderCommand as _, DrawFunctions, SortedRenderPhasePlugin, ViewSortedRenderPhases,
-            sort_phase_system,
+            AddRenderCommand as _, BinnedRenderPhasePlugin, DrawFunctions, ViewBinnedRenderPhases,
         },
         render_resource::SpecializedMeshPipelines,
     },
@@ -34,7 +33,7 @@ impl Plugin for OccluderPlugin {
         embedded_asset!(app, "occluder.wgsl");
 
         app.add_plugins((
-            SortedRenderPhasePlugin::<OccluderPhase, Mesh2dPipeline>::new(
+            BinnedRenderPhasePlugin::<OccluderPhase, Mesh2dPipeline>::new(
                 RenderDebugFlags::default(),
             ),
             ExtractComponentPlugin::<MeshOccluder2d>::default(),
@@ -47,7 +46,7 @@ impl Plugin for OccluderPlugin {
         render_app
             .init_resource::<DrawFunctions<OccluderPhase>>()
             .init_resource::<SpecializedMeshPipelines<OccluderPipeline>>()
-            .init_resource::<ViewSortedRenderPhases<OccluderPhase>>()
+            .init_resource::<ViewBinnedRenderPhases<OccluderPhase>>()
             .init_resource::<OccluderTextures>();
 
         render_app.add_render_command::<OccluderPhase, DrawOccluder>();
@@ -58,15 +57,9 @@ impl Plugin for OccluderPlugin {
         );
 
         render_app.add_systems(
-            ExtractSchedule,
-            super::extract::extract_occluder_view_entities,
-        );
-
-        render_app.add_systems(
             Render,
             (
                 super::phase::queue_occluders.in_set(RenderSystems::Queue),
-                sort_phase_system::<OccluderPhase>.in_set(RenderSystems::PhaseSort),
                 super::prepare::prepare_occluder_texture
                     .in_set(OccluderSet::PrepareTexture)
                     .in_set(RenderSystems::PrepareResources),

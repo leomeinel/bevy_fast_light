@@ -6,21 +6,16 @@
 //! Extracted [`Component`]s and systems for extraction to the render world.
 
 use bevy::{
-    camera::{Camera, Camera2d},
+    camera::Camera2d,
     color::{Alpha, LinearRgba},
     ecs::{
         component::Component,
-        entity::Entity,
         lifecycle::RemovedComponents,
         query::{Changed, With},
-        system::{Commands, Local, Query, ResMut, Single},
+        system::{Commands, Query, Single},
     },
     mesh::Mesh2d,
-    platform::collections::HashSet,
-    render::{
-        Extract, render_phase::ViewSortedRenderPhases, render_resource::ShaderType,
-        sync_world::RenderEntity, view::RetainedViewEntity,
-    },
+    render::{Extract, render_resource::ShaderType, sync_world::RenderEntity},
     utils::default,
 };
 use bytemuck::{Pod, Zeroable};
@@ -54,26 +49,6 @@ impl From<MeshLight2d> for ExtractedMeshLight2d {
             ..default()
         }
     }
-}
-
-/// Extract [`RetainedViewEntity`]s to [`ViewSortedRenderPhases<Light2dPhase>`] in render world.
-pub(super) fn extract_light_2d_view_entities(
-    mut light_phases: ResMut<ViewSortedRenderPhases<Light2dPhase>>,
-    cameras: Extract<Query<(Entity, &Camera), With<Camera2d>>>,
-    mut live_entities: Local<HashSet<RetainedViewEntity>>,
-) {
-    live_entities.clear();
-    for (main_entity, camera) in &cameras {
-        if !camera.is_active {
-            continue;
-        }
-        // NOTE: This is the main camera, so we use the first subview index (0)
-        let retained_view_entity = RetainedViewEntity::new(main_entity.into(), None, 0);
-        light_phases.insert_or_clear(retained_view_entity);
-        live_entities.insert(retained_view_entity);
-    }
-
-    light_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
 }
 
 /// Extract [`AmbientLight2d`] as [`ExtractedAmbientLight2d`] to render world.

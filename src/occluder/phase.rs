@@ -11,17 +11,17 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        system::{Query, Res, ResMut},
+        system::{Query, Res, ResMut, SystemChangeTick},
     },
     log::error,
-    math::FloatOrd,
     mesh::Mesh2d,
     render::{
         mesh::RenderMesh,
         render_asset::RenderAssets,
         render_phase::{
-            CachedRenderPipelinePhaseItem, DrawFunctionId, DrawFunctions, PhaseItem,
-            PhaseItemExtraIndex, SetItemPipeline, SortedPhaseItem, ViewSortedRenderPhases,
+            BinnedPhaseItem, BinnedRenderPhaseType, CachedRenderPipelinePhaseItem, DrawFunctionId,
+            DrawFunctions, InputUniformIndex, PhaseItem, PhaseItemBatchSetKey, PhaseItemExtraIndex,
+            SetItemPipeline, ViewBinnedRenderPhases,
         },
         render_resource::{CachedRenderPipelineId, PipelineCache, SpecializedMeshPipelines},
         sync_world::MainEntity,
@@ -36,27 +36,26 @@ use bevy::{
 use crate::{light::prelude::*, occluder::prelude::*};
 
 /// [`PhaseItem`] drawn in the render phase for light occlusion from [`MeshOccluder2d`].
-pub(super) struct OccluderPhase {
-    pub sort_key: FloatOrd,
-    pub entity: (Entity, MainEntity),
-    pub pipeline: CachedRenderPipelineId,
-    pub draw_function: DrawFunctionId,
-    pub batch_range: Range<u32>,
-    pub extra_index: PhaseItemExtraIndex,
-    pub indexed: bool,
+pub(crate) struct OccluderPhase {
+    #[allow(dead_code)]
+    pub(crate) batch_set_key: OccluderBatchSetKey,
+    pub(crate) bin_key: OccluderBinKey,
+    pub(crate) representative_entity: (Entity, MainEntity),
+    pub(crate) batch_range: Range<u32>,
+    pub(crate) extra_index: PhaseItemExtraIndex,
 }
 impl PhaseItem for OccluderPhase {
     #[inline]
     fn entity(&self) -> Entity {
-        self.entity.0
+        self.representative_entity.0
     }
     #[inline]
     fn main_entity(&self) -> MainEntity {
-        self.entity.1
+        self.representative_entity.1
     }
     #[inline]
     fn draw_function(&self) -> DrawFunctionId {
-        self.draw_function
+        self.bin_key.draw_function
     }
     #[inline]
     fn batch_range(&self) -> &Range<u32> {
@@ -75,22 +74,50 @@ impl PhaseItem for OccluderPhase {
         (&mut self.batch_range, &mut self.extra_index)
     }
 }
-impl SortedPhaseItem for OccluderPhase {
-    type SortKey = FloatOrd;
-    #[inline]
-    fn sort_key(&self) -> Self::SortKey {
-        self.sort_key
-    }
-    #[inline]
-    fn indexed(&self) -> bool {
-        self.indexed
+impl BinnedPhaseItem for OccluderPhase {
+    type BinKey = OccluderBinKey;
+
+    type BatchSetKey = OccluderBatchSetKey;
+
+    fn new(
+        batch_set_key: Self::BatchSetKey,
+        bin_key: Self::BinKey,
+        representative_entity: (Entity, MainEntity),
+        batch_range: Range<u32>,
+        extra_index: PhaseItemExtraIndex,
+    ) -> Self {
+        Self {
+            batch_set_key,
+            bin_key,
+            representative_entity,
+            batch_range,
+            extra_index,
+        }
     }
 }
 impl CachedRenderPipelinePhaseItem for OccluderPhase {
     #[inline]
     fn cached_pipeline(&self) -> CachedRenderPipelineId {
-        self.pipeline
+        self.bin_key.pipeline
     }
+}
+
+/// Batch set key for [`OccluderPhase`].
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
+pub struct OccluderBatchSetKey {
+    indexed: bool,
+}
+impl PhaseItemBatchSetKey for OccluderBatchSetKey {
+    fn indexed(&self) -> bool {
+        self.indexed
+    }
+}
+
+/// Bin key for [`OccluderPhase`].
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct OccluderBinKey {
+    pipeline: CachedRenderPipelineId,
+    draw_function: DrawFunctionId,
 }
 
 /// Draw function for light occlusion from [`MeshOccluder2d`].
@@ -107,14 +134,15 @@ pub(super) fn queue_occluders(
         (&ExtractedView, &RenderVisibleEntities, &Msaa),
         With<ExtractedAmbientLight2d>,
     >,
-    mut occluder_render_phases: ResMut<ViewSortedRenderPhases<OccluderPhase>>,
+    has_marker: Query<(), With<MeshOccluder2d>>,
+    mut occluder_render_phases: ResMut<ViewBinnedRenderPhases<OccluderPhase>>,
     mut pipelines: ResMut<SpecializedMeshPipelines<OccluderPipeline>>,
     occluder_draw_functions: Res<DrawFunctions<OccluderPhase>>,
     pipeline_cache: Res<PipelineCache>,
     occluder_draw_pipeline: Res<OccluderPipeline>,
     render_meshes: Res<RenderAssets<RenderMesh>>,
     render_mesh_instances: Res<RenderMesh2dInstances>,
-    has_marker: Query<(), With<MeshOccluder2d>>,
+    system_change_tick: SystemChangeTick,
 ) {
     let draw_function = occluder_draw_functions.read().id::<DrawOccluder>();
 
@@ -138,30 +166,40 @@ pub(super) fn queue_occluders(
 
             let mesh_key =
                 view_key | Mesh2dPipelineKey::from_primitive_topology(mesh.primitive_topology());
-            let pipeline_id = pipelines.specialize(
+            let pipeline = pipelines.specialize(
                 &pipeline_cache,
                 &occluder_draw_pipeline,
                 mesh_key,
                 &mesh.layout,
             );
-            let pipeline_id = match pipeline_id {
+            let pipeline = match pipeline {
                 Ok(id) => id,
                 Err(err) => {
                     error!("{}", err);
                     continue;
                 }
             };
-            let mesh_translation = &mesh_instance.transforms.world_from_local.translation;
-
-            phase.add(OccluderPhase {
-                sort_key: FloatOrd(mesh_translation.z),
-                entity: (*render_entity, *visible_entity),
-                pipeline: pipeline_id,
-                draw_function,
-                batch_range: 0..1,
-                extra_index: PhaseItemExtraIndex::None,
+            let batch_set_key = OccluderBatchSetKey {
                 indexed: mesh.indexed(),
-            });
+            };
+            let bin_key = OccluderBinKey {
+                pipeline,
+                draw_function,
+            };
+            let phase_type = if mesh_instance.automatic_batching {
+                BinnedRenderPhaseType::BatchableMesh
+            } else {
+                BinnedRenderPhaseType::UnbatchableMesh
+            };
+
+            phase.add(
+                batch_set_key,
+                bin_key,
+                (*render_entity, *visible_entity),
+                InputUniformIndex::default(),
+                phase_type,
+                system_change_tick.last_run(),
+            );
         }
     }
 }

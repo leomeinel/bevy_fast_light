@@ -1,6 +1,7 @@
 /*
  * Heavily inspired by:
  * - https://bevy.org/examples/shaders/custom-render-phase/
+ * - https://github.com/bevyengine/bevy/blob/main/crates/bevy_core_pipeline/src/core_2d/mod.rs
  */
 
 //! [`PhaseItem`]s and related for light rendering from [`MeshLight2d`].
@@ -11,17 +12,17 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        system::{Query, Res, ResMut},
+        system::{Query, Res, ResMut, SystemChangeTick},
     },
     log::error,
-    math::FloatOrd,
     mesh::Mesh2d,
     render::{
         mesh::RenderMesh,
         render_asset::RenderAssets,
         render_phase::{
-            CachedRenderPipelinePhaseItem, DrawFunctionId, DrawFunctions, PhaseItem,
-            PhaseItemExtraIndex, SetItemPipeline, SortedPhaseItem, ViewSortedRenderPhases,
+            BinnedPhaseItem, BinnedRenderPhaseType, CachedRenderPipelinePhaseItem, DrawFunctionId,
+            DrawFunctions, InputUniformIndex, PhaseItem, PhaseItemBatchSetKey, PhaseItemExtraIndex,
+            SetItemPipeline, ViewBinnedRenderPhases,
         },
         render_resource::{CachedRenderPipelineId, PipelineCache, SpecializedMeshPipelines},
         sync_world::MainEntity,
@@ -36,27 +37,26 @@ use bevy::{
 use crate::light::prelude::*;
 
 /// [`PhaseItem`] drawn in the render phase for light rendering from [`MeshLight2d`].
-pub(super) struct Light2dPhase {
-    pub sort_key: FloatOrd,
-    pub entity: (Entity, MainEntity),
-    pub pipeline: CachedRenderPipelineId,
-    pub draw_function: DrawFunctionId,
-    pub batch_range: Range<u32>,
-    pub extra_index: PhaseItemExtraIndex,
-    pub indexed: bool,
+pub(crate) struct Light2dPhase {
+    #[allow(dead_code)]
+    pub(crate) batch_set_key: Light2dBatchSetKey,
+    pub(crate) bin_key: Light2dBinKey,
+    pub(crate) representative_entity: (Entity, MainEntity),
+    pub(crate) batch_range: Range<u32>,
+    pub(crate) extra_index: PhaseItemExtraIndex,
 }
 impl PhaseItem for Light2dPhase {
     #[inline]
     fn entity(&self) -> Entity {
-        self.entity.0
+        self.representative_entity.0
     }
     #[inline]
     fn main_entity(&self) -> MainEntity {
-        self.entity.1
+        self.representative_entity.1
     }
     #[inline]
     fn draw_function(&self) -> DrawFunctionId {
-        self.draw_function
+        self.bin_key.draw_function
     }
     #[inline]
     fn batch_range(&self) -> &Range<u32> {
@@ -75,22 +75,50 @@ impl PhaseItem for Light2dPhase {
         (&mut self.batch_range, &mut self.extra_index)
     }
 }
-impl SortedPhaseItem for Light2dPhase {
-    type SortKey = FloatOrd;
-    #[inline]
-    fn sort_key(&self) -> Self::SortKey {
-        self.sort_key
-    }
-    #[inline]
-    fn indexed(&self) -> bool {
-        self.indexed
+impl BinnedPhaseItem for Light2dPhase {
+    type BinKey = Light2dBinKey;
+
+    type BatchSetKey = Light2dBatchSetKey;
+
+    fn new(
+        batch_set_key: Self::BatchSetKey,
+        bin_key: Self::BinKey,
+        representative_entity: (Entity, MainEntity),
+        batch_range: Range<u32>,
+        extra_index: PhaseItemExtraIndex,
+    ) -> Self {
+        Self {
+            batch_set_key,
+            bin_key,
+            representative_entity,
+            batch_range,
+            extra_index,
+        }
     }
 }
 impl CachedRenderPipelinePhaseItem for Light2dPhase {
     #[inline]
     fn cached_pipeline(&self) -> CachedRenderPipelineId {
-        self.pipeline
+        self.bin_key.pipeline
     }
+}
+
+/// Batch set key for [`Light2dPhase`].
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
+pub struct Light2dBatchSetKey {
+    indexed: bool,
+}
+impl PhaseItemBatchSetKey for Light2dBatchSetKey {
+    fn indexed(&self) -> bool {
+        self.indexed
+    }
+}
+
+/// Bin key for [`Light2dPhase`].
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Light2dBinKey {
+    pipeline: CachedRenderPipelineId,
+    draw_function: DrawFunctionId,
 }
 
 /// Draw function for light rendering from [`MeshLight2d`].
@@ -102,20 +130,21 @@ pub(super) type DrawLight2d = (
     DrawMesh2d,
 );
 
-/// Queue drawable entities as [`Light2dPhase`]s phase items in render phases ready for sorting.
+/// Queue drawable entities for [`ViewBinnedRenderPhases<Light2dPhase>`].
 pub(super) fn queue_light_2ds(
     mut views: Query<
         (&ExtractedView, &RenderVisibleEntities, &Msaa),
         With<ExtractedAmbientLight2d>,
     >,
-    mut light_render_phases: ResMut<ViewSortedRenderPhases<Light2dPhase>>,
+    has_marker: Query<(), With<ExtractedMeshLight2d>>,
+    mut light_render_phases: ResMut<ViewBinnedRenderPhases<Light2dPhase>>,
     mut pipelines: ResMut<SpecializedMeshPipelines<Light2dPipeline>>,
     light_draw_functions: Res<DrawFunctions<Light2dPhase>>,
     pipeline_cache: Res<PipelineCache>,
     light_draw_pipeline: Res<Light2dPipeline>,
     render_meshes: Res<RenderAssets<RenderMesh>>,
     render_mesh_instances: Res<RenderMesh2dInstances>,
-    has_marker: Query<(), With<ExtractedMeshLight2d>>,
+    system_change_tick: SystemChangeTick,
 ) {
     let draw_function = light_draw_functions.read().id::<DrawLight2d>();
 
@@ -139,30 +168,35 @@ pub(super) fn queue_light_2ds(
 
             let mesh_key =
                 view_key | Mesh2dPipelineKey::from_primitive_topology(mesh.primitive_topology());
-            let pipeline_id = pipelines.specialize(
+            let pipeline = pipelines.specialize(
                 &pipeline_cache,
                 &light_draw_pipeline,
                 mesh_key,
                 &mesh.layout,
             );
-            let pipeline_id = match pipeline_id {
+            let pipeline = match pipeline {
                 Ok(id) => id,
                 Err(err) => {
                     error!("{}", err);
                     continue;
                 }
             };
-            let mesh_translation = &mesh_instance.transforms.world_from_local.translation;
-
-            phase.add(Light2dPhase {
-                sort_key: FloatOrd(mesh_translation.z),
-                entity: (*render_entity, *visible_entity),
-                pipeline: pipeline_id,
-                draw_function,
-                batch_range: 0..1,
-                extra_index: PhaseItemExtraIndex::None,
+            let batch_set_key = Light2dBatchSetKey {
                 indexed: mesh.indexed(),
-            });
+            };
+            let bin_key = Light2dBinKey {
+                pipeline,
+                draw_function,
+            };
+            phase.add(
+                batch_set_key,
+                bin_key,
+                (*render_entity, *visible_entity),
+                InputUniformIndex::default(),
+                // NOTE: We can't use `BinnedRenderPhaseType::BatchableMesh` because we are passing per object uniforms.
+                BinnedRenderPhaseType::UnbatchableMesh,
+                system_change_tick.last_run(),
+            );
         }
     }
 }

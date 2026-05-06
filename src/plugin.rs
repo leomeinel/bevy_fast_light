@@ -15,7 +15,10 @@ use bevy::{
     app::{App, Plugin},
     core_pipeline::core_2d::graph::{Core2d, Node2d},
     ecs::resource::Resource,
-    render::{RenderApp, extract_resource::ExtractResource, render_graph::RenderGraphExt as _},
+    render::{
+        ExtractSchedule, RenderApp, extract_resource::ExtractResource,
+        render_graph::RenderGraphExt as _,
+    },
 };
 
 use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
@@ -47,6 +50,8 @@ impl Plugin for FastLightPlugin {
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
+
+        render_app.add_systems(ExtractSchedule, super::extract::extract_view_entities);
 
         render_app.add_render_graph_edges(
             Core2d,

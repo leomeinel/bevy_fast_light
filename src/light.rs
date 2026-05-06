@@ -15,7 +15,8 @@ pub(super) mod prelude {
     pub(crate) use super::extract::ExtractedAmbientLight2d;
     pub(super) use super::extract::ExtractedMeshLight2d;
     pub(super) use super::node::{Light2dCompositeNode, Light2dNode};
-    pub(super) use super::phase::{DrawLight2d, Light2dPhase};
+    pub(super) use super::phase::DrawLight2d;
+    pub(crate) use super::phase::Light2dPhase;
     pub(super) use super::pipeline::{Light2dCompositePipeline, Light2dPipeline};
     pub(crate) use super::plugin::{Light2dCompositeLabel, Light2dLabel, Light2dPlugin};
     pub(super) use super::prepare::{Light2dTextures, Light2dUniformBuffers};

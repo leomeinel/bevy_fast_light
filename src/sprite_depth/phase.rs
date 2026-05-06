@@ -29,15 +29,15 @@ use crate::{light::prelude::*, sprite_depth::prelude::*};
 /// [`PhaseItem`] drawn in the render phase for [`Sprite`] z-level rendering.
 ///
 /// Last updated from [`bevy`]@0.18.1.
-pub(super) struct SpriteDepthPhase {
-    pub sort_key: FloatOrd,
-    pub entity: (Entity, MainEntity),
-    pub pipeline: CachedRenderPipelineId,
-    pub draw_function: DrawFunctionId,
-    pub batch_range: Range<u32>,
-    pub extracted_index: usize,
-    pub extra_index: PhaseItemExtraIndex,
-    pub indexed: bool,
+pub(crate) struct SpriteDepthPhase {
+    pub(crate) sort_key: FloatOrd,
+    pub(crate) entity: (Entity, MainEntity),
+    pub(crate) pipeline: CachedRenderPipelineId,
+    pub(crate) draw_function: DrawFunctionId,
+    pub(crate) batch_range: Range<u32>,
+    pub(crate) extracted_index: usize,
+    pub(crate) extra_index: PhaseItemExtraIndex,
+    pub(crate) indexed: bool,
 }
 impl PhaseItem for SpriteDepthPhase {
     #[inline]

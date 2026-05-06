@@ -12,7 +12,7 @@ use bevy::{
     render::{
         extract_component::ComponentUniforms,
         render_graph::{NodeRunError, RenderGraphContext, ViewNode},
-        render_phase::ViewSortedRenderPhases,
+        render_phase::ViewBinnedRenderPhases,
         render_resource::*,
         renderer::RenderContext,
         view::{ExtractedView, ViewTarget},
@@ -35,7 +35,7 @@ impl ViewNode for Light2dNode {
         world: &World,
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.view_entity();
-        let light_phases = world.resource::<ViewSortedRenderPhases<Light2dPhase>>();
+        let light_phases = world.resource::<ViewBinnedRenderPhases<Light2dPhase>>();
         let light_textures = world.resource::<Light2dTextures>();
         let (Some(light_phase), Some(light_texture)) = (
             light_phases.get(&extracted_view.retained_view_entity),

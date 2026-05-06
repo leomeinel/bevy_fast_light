@@ -16,8 +16,7 @@ use bevy::{
         extract_resource::ExtractResourcePlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
-            AddRenderCommand as _, DrawFunctions, SortedRenderPhasePlugin, ViewSortedRenderPhases,
-            sort_phase_system,
+            AddRenderCommand as _, BinnedRenderPhasePlugin, DrawFunctions, ViewBinnedRenderPhases,
         },
         render_resource::SpecializedMeshPipelines,
     },
@@ -36,7 +35,7 @@ impl Plugin for Light2dPlugin {
         embedded_asset!(app, "light_2d_composite.wgsl");
 
         app.add_plugins((
-            SortedRenderPhasePlugin::<Light2dPhase, Mesh2dPipeline>::new(
+            BinnedRenderPhasePlugin::<Light2dPhase, Mesh2dPipeline>::new(
                 RenderDebugFlags::default(),
             ),
             ExtractResourcePlugin::<FastLightSettings>::default(),
@@ -50,7 +49,7 @@ impl Plugin for Light2dPlugin {
         render_app
             .init_resource::<DrawFunctions<Light2dPhase>>()
             .init_resource::<SpecializedMeshPipelines<Light2dPipeline>>()
-            .init_resource::<ViewSortedRenderPhases<Light2dPhase>>()
+            .init_resource::<ViewBinnedRenderPhases<Light2dPhase>>()
             .init_resource::<Light2dTextures>()
             .init_resource::<Light2dFragmentBindGroups>()
             .init_resource::<Light2dUniformBuffers>();
@@ -68,7 +67,6 @@ impl Plugin for Light2dPlugin {
         render_app.add_systems(
             ExtractSchedule,
             (
-                super::extract::extract_light_2d_view_entities,
                 super::extract::extract_ambient_light,
                 super::extract::extract_mesh_lights,
             ),
@@ -78,7 +76,6 @@ impl Plugin for Light2dPlugin {
             Render,
             (
                 super::phase::queue_light_2ds.in_set(RenderSystems::Queue),
-                sort_phase_system::<Light2dPhase>.in_set(RenderSystems::PhaseSort),
                 (
                     super::prepare::prepare_light_2d_texture,
                     (

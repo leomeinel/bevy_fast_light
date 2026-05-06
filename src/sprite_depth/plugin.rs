@@ -6,7 +6,7 @@ use bevy::{
     core_pipeline::core_2d::graph::Core2d,
     ecs::schedule::IntoScheduleConfigs as _,
     render::{
-        ExtractSchedule, Render, RenderApp, RenderStartup, RenderSystems,
+        Render, RenderApp, RenderStartup, RenderSystems,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
             AddRenderCommand, DrawFunctions, ViewSortedRenderPhases, sort_phase_system,
@@ -38,11 +38,6 @@ impl Plugin for SpriteDepthPlugin {
         render_app.add_render_command::<SpriteDepthPhase, DrawSpriteDepth>();
 
         render_app.add_systems(RenderStartup, super::pipeline::init_sprite_depth_pipeline);
-
-        render_app.add_systems(
-            ExtractSchedule,
-            super::extract::extract_sprite_depth_view_entities,
-        );
 
         render_app.add_systems(
             Render,
