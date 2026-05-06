@@ -25,17 +25,13 @@ use crate::light::prelude::*;
 #[derive(Default)]
 pub(super) struct Light2dNode;
 impl ViewNode for Light2dNode {
-    type ViewQuery = (
-        &'static ViewTarget,
-        &'static ExtractedView,
-        &'static ExtractedAmbientLight2d,
-    );
+    type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
 
     fn run(
         &self,
         graph: &mut RenderGraphContext,
         render_context: &mut RenderContext,
-        (_, extracted_view, _): QueryItem<Self::ViewQuery>,
+        (extracted_view, _): QueryItem<Self::ViewQuery>,
         world: &World,
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.view_entity();

@@ -33,7 +33,7 @@ use bevy::{
     },
 };
 
-use crate::occluder::prelude::*;
+use crate::{light::prelude::*, occluder::prelude::*};
 
 /// [`PhaseItem`] drawn in the render phase for light occlusion from [`MeshOccluder2d`].
 pub(super) struct OccluderPhase {
@@ -103,7 +103,10 @@ pub(super) type DrawOccluder = (
 
 /// Queue drawable entities as [`OccluderPhase`]s phase items in render phases ready for sorting.
 pub(super) fn queue_occluders(
-    mut views: Query<(&ExtractedView, &RenderVisibleEntities, &Msaa)>,
+    mut views: Query<
+        (&ExtractedView, &RenderVisibleEntities, &Msaa),
+        With<ExtractedAmbientLight2d>,
+    >,
     mut occluder_render_phases: ResMut<ViewSortedRenderPhases<OccluderPhase>>,
     mut pipelines: ResMut<SpecializedMeshPipelines<OccluderPipeline>>,
     occluder_draw_functions: Res<DrawFunctions<OccluderPhase>>,

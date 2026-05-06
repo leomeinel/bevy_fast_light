@@ -33,10 +33,7 @@ use bevy::{
         entity::Entity,
         query::ROQueryItem,
         resource::Resource,
-        system::{
-            SystemParamItem,
-            lifetimeless::{Read, SRes},
-        },
+        system::{SystemParamItem, lifetimeless::SRes},
     },
     image::Image,
     math::{Affine3A, Vec4},
@@ -49,6 +46,8 @@ use bevy::{
     },
 };
 use bytemuck::{Pod, Zeroable};
+
+use crate::light::prelude::*;
 
 /// Custom implementation of `SpriteInstance`.
 ///
@@ -131,12 +130,12 @@ pub(super) struct SpriteDepthImageBindGroups(HashMap<AssetId<Image>, BindGroup>)
 pub(super) struct SetSpriteDepthTextureBindGroup<const I: usize>;
 impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetSpriteDepthTextureBindGroup<I> {
     type Param = (SRes<SpriteDepthImageBindGroups>, SRes<SpriteDepthBatches>);
-    type ViewQuery = Read<ExtractedView>;
+    type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
     type ItemQuery = ();
 
     fn render<'w>(
         item: &P,
-        view: ROQueryItem<'w, '_, Self::ViewQuery>,
+        (view, _): ROQueryItem<'w, '_, Self::ViewQuery>,
         _entity: Option<()>,
         (bind_groups, batches): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
@@ -159,12 +158,12 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetSpriteDepthTextureBin
 pub(super) struct DrawSpriteDepthBatch;
 impl<P: PhaseItem> RenderCommand<P> for DrawSpriteDepthBatch {
     type Param = (SRes<SpriteDepthMeta>, SRes<SpriteDepthBatches>);
-    type ViewQuery = Read<ExtractedView>;
+    type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
     type ItemQuery = ();
 
     fn render<'w>(
         item: &P,
-        view: ROQueryItem<'w, '_, Self::ViewQuery>,
+        (view, _): ROQueryItem<'w, '_, Self::ViewQuery>,
         _entity: Option<()>,
         (sprite_meta, batches): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,

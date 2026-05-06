@@ -12,7 +12,8 @@ mod plugin;
 mod prepare;
 
 pub(super) mod prelude {
-    pub(super) use super::extract::{ExtractedAmbientLight2d, ExtractedMeshLight2d};
+    pub(crate) use super::extract::ExtractedAmbientLight2d;
+    pub(super) use super::extract::ExtractedMeshLight2d;
     pub(super) use super::node::{Light2dCompositeNode, Light2dNode};
     pub(super) use super::phase::{DrawLight2d, Light2dPhase};
     pub(super) use super::pipeline::{Light2dCompositePipeline, Light2dPipeline};
@@ -40,6 +41,8 @@ use bevy::{
         view::ExtractedView,
     },
 };
+
+use crate::light::prelude::*;
 
 /// Ambient light for fullscreen lighting in a 2D environment.
 ///
@@ -108,7 +111,7 @@ pub(super) struct Light2dFragmentBindGroups(pub(super) HashMap<Entity, BindGroup
 pub(super) struct SetLight2dFragmentBindGroup<const I: usize>;
 impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetLight2dFragmentBindGroup<I> {
     type Param = SRes<Light2dFragmentBindGroups>;
-    type ViewQuery = &'static ExtractedView;
+    type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
     type ItemQuery = ();
 
     fn render<'w>(

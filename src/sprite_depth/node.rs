@@ -8,23 +8,23 @@ use bevy::{
         render_phase::ViewSortedRenderPhases,
         render_resource::{Operations, RenderPassColorAttachment, RenderPassDescriptor},
         renderer::RenderContext,
-        view::{ExtractedView, ViewTarget},
+        view::ExtractedView,
     },
 };
 
-use crate::{occluder::prelude::*, sprite_depth::prelude::*};
+use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 
 /// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture from [`SpriteDepthTextures`].
 #[derive(Default)]
 pub(super) struct SpriteDepthNode;
 impl ViewNode for SpriteDepthNode {
-    type ViewQuery = (&'static ViewTarget, &'static ExtractedView);
+    type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
 
     fn run(
         &self,
         graph: &mut RenderGraphContext,
         render_context: &mut RenderContext,
-        (_, extracted_view): QueryItem<Self::ViewQuery>,
+        (extracted_view, _): QueryItem<Self::ViewQuery>,
         world: &World,
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.view_entity();

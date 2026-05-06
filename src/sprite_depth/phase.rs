@@ -6,6 +6,7 @@ use bevy::{
     core_pipeline::tonemapping::{DebandDither, Tonemapping},
     ecs::{
         entity::Entity,
+        query::With,
         system::{Local, Query, Res, ResMut},
     },
     math::FloatOrd,
@@ -23,7 +24,7 @@ use bevy::{
 };
 use fixedbitset::FixedBitSet;
 
-use crate::sprite_depth::prelude::*;
+use crate::{light::prelude::*, sprite_depth::prelude::*};
 
 /// [`PhaseItem`] drawn in the render phase for [`Sprite`] z-level rendering.
 ///
@@ -111,13 +112,16 @@ pub fn queue_sprite_depths(
     pipeline_cache: Res<PipelineCache>,
     extracted_sprites: Res<ExtractedSprites>,
     mut sprite_depth_phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
-    mut views: Query<(
-        &RenderVisibleEntities,
-        &ExtractedView,
-        &Msaa,
-        Option<&Tonemapping>,
-        Option<&DebandDither>,
-    )>,
+    mut views: Query<
+        (
+            &RenderVisibleEntities,
+            &ExtractedView,
+            &Msaa,
+            Option<&Tonemapping>,
+            Option<&DebandDither>,
+        ),
+        With<ExtractedAmbientLight2d>,
+    >,
 ) {
     let draw_function = draw_functions.read().id::<DrawSpriteDepth>();
 

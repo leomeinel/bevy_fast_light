@@ -7,6 +7,7 @@
 
 use bevy::{
     ecs::{
+        query::With,
         resource::Resource,
         system::{Query, Res, ResMut},
     },
@@ -18,7 +19,7 @@ use bevy::{
     },
 };
 
-use crate::{plugin::prelude::*, utils::prelude::*};
+use crate::{light::prelude::*, plugin::prelude::*, utils::prelude::*};
 
 /// [`CachedTexture`]s for [`MeshOccluder2d`](crate::prelude::MeshOccluder2d).
 #[derive(Resource, Default)]
@@ -26,7 +27,7 @@ pub(crate) struct OccluderTextures(pub(crate) HashMap<RetainedViewEntity, Cached
 
 /// Prepare scaled [`CachedTexture`]s and insert into [`OccluderTextures`].
 pub(super) fn prepare_occluder_texture(
-    views: Query<(&ViewTarget, &ExtractedView)>,
+    views: Query<(&ViewTarget, &ExtractedView), With<ExtractedAmbientLight2d>>,
     mut textures: ResMut<OccluderTextures>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,

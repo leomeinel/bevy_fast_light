@@ -29,7 +29,7 @@ use crate::light::prelude::*;
 
 /// [`ShaderType`] that gets extracted to the render world for [`AmbientLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
-pub(super) struct ExtractedAmbientLight2d {
+pub(crate) struct ExtractedAmbientLight2d {
     color: LinearRgba,
 }
 impl From<AmbientLight2d> for ExtractedAmbientLight2d {

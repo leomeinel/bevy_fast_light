@@ -104,7 +104,10 @@ pub(super) type DrawLight2d = (
 
 /// Queue drawable entities as [`Light2dPhase`]s phase items in render phases ready for sorting.
 pub(super) fn queue_light_2ds(
-    mut views: Query<(&ExtractedView, &RenderVisibleEntities, &Msaa)>,
+    mut views: Query<
+        (&ExtractedView, &RenderVisibleEntities, &Msaa),
+        With<ExtractedAmbientLight2d>,
+    >,
     mut light_render_phases: ResMut<ViewSortedRenderPhases<Light2dPhase>>,
     mut pipelines: ResMut<SpecializedMeshPipelines<Light2dPipeline>>,
     light_draw_functions: Res<DrawFunctions<Light2dPhase>>,

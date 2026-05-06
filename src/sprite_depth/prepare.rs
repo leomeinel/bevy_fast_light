@@ -24,7 +24,7 @@ use bevy::{
     },
 };
 
-use crate::sprite_depth::prelude::*;
+use crate::{light::prelude::*, sprite_depth::prelude::*};
 
 /// Prepare [`SpriteViewBindGroup`].
 ///
@@ -37,7 +37,7 @@ pub(super) fn prepare_sprite_depth_view_bind_groups(
     pipeline_cache: Res<PipelineCache>,
     sprite_pipeline: Res<SpriteDepthPipeline>,
     view_uniforms: Res<ViewUniforms>,
-    views: Query<(Entity, &Tonemapping), With<ExtractedView>>,
+    views: Query<(Entity, &Tonemapping), (With<ExtractedView>, With<ExtractedAmbientLight2d>)>,
     tonemapping_luts: Res<TonemappingLuts>,
     images: Res<RenderAssets<GpuImage>>,
     fallback_image: Res<FallbackImage>,

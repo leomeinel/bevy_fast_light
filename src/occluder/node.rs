@@ -14,23 +14,23 @@ use bevy::{
         render_phase::ViewSortedRenderPhases,
         render_resource::*,
         renderer::RenderContext,
-        view::{ExtractedView, ViewTarget},
+        view::ExtractedView,
     },
 };
 
-use crate::occluder::prelude::*;
+use crate::{light::prelude::*, occluder::prelude::*};
 
 /// [`ViewNode`] that renders occluders to a texture from [`OccluderTextures`].
 #[derive(Default)]
 pub(super) struct OccluderNode;
 impl ViewNode for OccluderNode {
-    type ViewQuery = (&'static ViewTarget, &'static ExtractedView);
+    type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
 
     fn run(
         &self,
         graph: &mut RenderGraphContext,
         render_context: &mut RenderContext,
-        (_, extracted_view): QueryItem<Self::ViewQuery>,
+        (extracted_view, _): QueryItem<Self::ViewQuery>,
         world: &World,
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.view_entity();

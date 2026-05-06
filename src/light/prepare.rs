@@ -36,7 +36,7 @@ pub(super) struct Light2dUniformBuffers(pub(super) HashMap<Entity, Buffer>);
 
 /// Prepare scaled [`CachedTexture`]s and insert into [`Light2dTextures`].
 pub(super) fn prepare_light_2d_texture(
-    views: Query<(&ViewTarget, &ExtractedView)>,
+    views: Query<(&ViewTarget, &ExtractedView), With<ExtractedAmbientLight2d>>,
     mut textures: ResMut<Light2dTextures>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
@@ -79,7 +79,7 @@ pub(super) fn prepare_light_2d_buffers(
 
 /// Prepare [`Light2dFragmentBindGroups`].
 pub(super) fn prepare_light_2d_fragment_bind_groups(
-    views: Query<&ExtractedView>,
+    views: Query<&ExtractedView, With<ExtractedAmbientLight2d>>,
     light_query: Query<Entity, With<ExtractedMeshLight2d>>,
     mut light_bind_groups: ResMut<Light2dFragmentBindGroups>,
     light_buffers: Res<Light2dUniformBuffers>,
