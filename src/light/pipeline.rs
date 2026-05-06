@@ -164,14 +164,6 @@ pub(super) fn init_light_2d_composite_pipeline(
         ),
     );
 
-    let screen_sampler = render_device.create_sampler(&SamplerDescriptor::default());
-    // NOTE: We are using linear sampling here to avoid pixelated lights
-    let light_sampler = render_device.create_sampler(&SamplerDescriptor {
-        mag_filter: FilterMode::Linear,
-        min_filter: FilterMode::Linear,
-        mipmap_filter: FilterMode::Linear,
-        ..default()
-    });
     let shader = load_embedded_asset!(asset_server.as_ref(), "light_2d_composite.wgsl");
     let pipeline_id = pipeline_cache.queue_render_pipeline(RenderPipelineDescriptor {
         label: Some("light_2d_composite_pipeline".into()),
@@ -189,9 +181,17 @@ pub(super) fn init_light_2d_composite_pipeline(
         ..default()
     });
 
+    // NOTE: We are using linear sampling here to avoid pixelated lights
+    let light_sampler = render_device.create_sampler(&SamplerDescriptor {
+        mag_filter: FilterMode::Linear,
+        min_filter: FilterMode::Linear,
+        mipmap_filter: FilterMode::Linear,
+        ..default()
+    });
+
     commands.insert_resource(Light2dCompositePipeline {
         fragment_layout,
-        screen_sampler,
+        screen_sampler: render_device.create_sampler(&SamplerDescriptor::default()),
         light_sampler,
         pipeline_id,
     });
