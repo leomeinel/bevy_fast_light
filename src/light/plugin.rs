@@ -12,7 +12,6 @@ use bevy::{
     ecs::schedule::IntoScheduleConfigs as _,
     render::{
         ExtractSchedule, Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
-        batching::no_gpu_preprocessing::batch_and_prepare_sorted_render_phase,
         extract_component::UniformComponentPlugin,
         extract_resource::ExtractResourcePlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
@@ -81,7 +80,6 @@ impl Plugin for Light2dPlugin {
                 super::phase::queue_light_2ds.in_set(RenderSystems::Queue),
                 sort_phase_system::<Light2dPhase>.in_set(RenderSystems::PhaseSort),
                 (
-                    batch_and_prepare_sorted_render_phase::<Light2dPhase, Light2dPipeline>,
                     super::prepare::prepare_light_2d_texture,
                     (
                         super::prepare::prepare_light_2d_buffers,

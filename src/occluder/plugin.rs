@@ -12,7 +12,6 @@ use bevy::{
     ecs::schedule::{IntoScheduleConfigs as _, SystemSet},
     render::{
         ExtractSchedule, Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
-        batching::no_gpu_preprocessing::batch_and_prepare_sorted_render_phase,
         extract_component::ExtractComponentPlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
@@ -68,10 +67,8 @@ impl Plugin for OccluderPlugin {
             (
                 super::phase::queue_occluders.in_set(RenderSystems::Queue),
                 sort_phase_system::<OccluderPhase>.in_set(RenderSystems::PhaseSort),
-                (
-                    batch_and_prepare_sorted_render_phase::<OccluderPhase, OccluderPipeline>,
-                    super::prepare::prepare_occluder_texture.in_set(OccluderSet::PrepareTexture),
-                )
+                super::prepare::prepare_occluder_texture
+                    .in_set(OccluderSet::PrepareTexture)
                     .in_set(RenderSystems::PrepareResources),
             ),
         );
