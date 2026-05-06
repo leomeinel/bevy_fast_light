@@ -30,6 +30,10 @@ use crate::{light::prelude::*, occluder::prelude::*, plugin::prelude::*, utils::
 #[derive(Resource, Default)]
 pub(super) struct Light2dTextures(pub(super) HashMap<RetainedViewEntity, CachedTexture>);
 
+/// [`Buffer`]s mapped to [`MeshLight2d`] [`Entity`]s.
+#[derive(Resource, Default)]
+pub(super) struct Light2dUniformBuffers(pub(super) HashMap<Entity, Buffer>);
+
 /// Prepare scaled [`CachedTexture`]s and insert into [`Light2dTextures`].
 pub(super) fn prepare_light_2d_texture(
     views: Query<(&ViewTarget, &ExtractedView)>,
@@ -52,10 +56,6 @@ pub(super) fn prepare_light_2d_texture(
             .insert(extracted_view.retained_view_entity, texture);
     }
 }
-
-/// [`Buffer`]s mapped to [`MeshLight2d`] [`Entity`]s.
-#[derive(Resource, Default)]
-pub(super) struct Light2dUniformBuffers(pub(super) HashMap<Entity, Buffer>);
 
 /// Prepare [`Light2dUniformBuffers`].
 pub(super) fn prepare_light_2d_buffers(
