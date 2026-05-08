@@ -39,7 +39,7 @@ use bevy::{
         render_phase::{PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass},
         render_resource::BindGroup,
         sync_world::SyncToRenderWorld,
-        view::ExtractedView,
+        view::{ExtractedView, RetainedViewEntity},
     },
 };
 
@@ -106,7 +106,9 @@ impl Default for MeshLight2d {
 
 /// [`BindGroup`]s mapped to [`MeshLight2d`] [`Entity`]s.
 #[derive(Resource, Default)]
-pub(super) struct Light2dFragmentBindGroups(pub(super) HashMap<Entity, BindGroup>);
+pub(super) struct Light2dFragmentBindGroups(
+    pub(super) HashMap<(RetainedViewEntity, Entity), BindGroup>,
+);
 
 /// Set [`BindGroup`]s from [`Light2dFragmentBindGroups`] for [`DrawLight2d`](crate::light::prelude::DrawLight2d).
 pub(super) struct SetLight2dFragmentBindGroup<const I: usize>;
@@ -117,13 +119,16 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetLight2dFragmentBindGr
 
     fn render<'w>(
         item: &P,
-        _view: ROQueryItem<'w, '_, Self::ViewQuery>,
+        (view, _): ROQueryItem<'w, '_, Self::ViewQuery>,
         _entity: Option<()>,
         bind_groups: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let bind_groups = bind_groups.into_inner();
-        let Some(bind_group) = bind_groups.0.get(&item.entity()) else {
+        let Some(bind_group) = bind_groups
+            .0
+            .get(&(view.retained_view_entity, item.entity()))
+        else {
             return RenderCommandResult::Skip;
         };
 

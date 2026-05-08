@@ -90,10 +90,8 @@ pub(super) fn prepare_light_2d_fragment_bind_groups(
 ) {
     light_bind_groups.0.clear();
     for extracted_view in &views {
-        let Some(occluder_texture) = occluder_textures
-            .0
-            .get(&extracted_view.retained_view_entity)
-        else {
+        let retained_view_entity = extracted_view.retained_view_entity;
+        let Some(occluder_texture) = occluder_textures.0.get(&retained_view_entity) else {
             continue;
         };
 
@@ -111,7 +109,9 @@ pub(super) fn prepare_light_2d_fragment_bind_groups(
                     light_buffer.as_entire_binding(),
                 )),
             );
-            light_bind_groups.0.insert(entity, fragment_bind_group);
+            light_bind_groups
+                .0
+                .insert((retained_view_entity, entity), fragment_bind_group);
         }
     }
 }
