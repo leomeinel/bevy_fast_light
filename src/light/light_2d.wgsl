@@ -1,4 +1,5 @@
 #import bevy_sprite::{mesh2d_vertex_output::VertexOutput, mesh2d_view_bindings::view}
+#import bevy_render::view::frag_coord_to_uv
 
 #import bevy_fast_light::light::types::MeshLight2d
 
@@ -15,8 +16,7 @@ const INV_RADIUS_SQ = 1. / RADIUS_SQ;
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    // Heavily inspired by: https://github.com/bevyengine/bevy/blob/main/crates/bevy_pbr/src/render/utils.wgsl
-    let viewport_uv = (in.position.xy - view.viewport.xy) / view.viewport.zw;
+    let viewport_uv = frag_coord_to_uv(in.position.xy, view.viewport);
     let occluder_color = textureSample(occluder_texture, occluder_sampler, viewport_uv);
     let sprite_depth = occluder_color.r;
     let is_occluder = occluder_color.g > 0.5;
