@@ -61,10 +61,8 @@ impl Plugin for FastLightPlugin {
                 OccluderLabel,
                 Node2d::MainTransparentPass,
                 Light2dLabel,
-                Node2d::EndMainPass,
-                Node2d::Tonemapping,
                 Light2dCompositeLabel,
-                Node2d::EndMainPassPostProcessing,
+                Node2d::EndMainPass,
             ),
         );
     }

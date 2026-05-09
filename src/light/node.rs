@@ -102,12 +102,11 @@ impl ViewNode for Light2dCompositeNode {
             return Ok(());
         };
 
-        let screen_texture = view_target.post_process_write();
         let fragment_bind_group = render_context.render_device().create_bind_group(
             "light_2d_composite_fragment_bind_group",
             &pipeline_cache.get_bind_group_layout(&light_composite_pipeline.fragment_layout),
             &BindGroupEntries::sequential((
-                screen_texture.source,
+                view_target.post_process_write().source,
                 &light_composite_pipeline.screen_sampler,
                 &light_texture.default_view,
                 &light_composite_pipeline.light_sampler,
@@ -117,12 +116,8 @@ impl ViewNode for Light2dCompositeNode {
 
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
             label: Some("light_2d_composite_render_pass"),
-            color_attachments: &[Some(RenderPassColorAttachment {
-                view: screen_texture.destination,
-                depth_slice: None,
-                resolve_target: None,
-                ops: Operations::default(),
-            })],
+            // NOTE: I'm not entirely sure if using unsampled here is correct.
+            color_attachments: &[Some(view_target.get_unsampled_color_attachment())],
             depth_stencil_attachment: None,
             timestamp_writes: None,
             occlusion_query_set: None,
