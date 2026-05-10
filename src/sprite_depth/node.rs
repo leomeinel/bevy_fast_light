@@ -14,7 +14,7 @@ use bevy::{
 
 use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 
-/// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture from [`SpriteDepthTextures`].
+/// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture from [`OccluderTextures`].
 #[derive(Default)]
 pub(super) struct SpriteDepthNode;
 impl ViewNode for SpriteDepthNode {

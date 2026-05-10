@@ -110,7 +110,7 @@ pub(super) struct Light2dFragmentBindGroups(
     pub(super) HashMap<(RetainedViewEntity, Entity), BindGroup>,
 );
 
-/// Set [`BindGroup`]s from [`Light2dFragmentBindGroups`] for [`DrawLight2d`](crate::light::prelude::DrawLight2d).
+/// Set [`BindGroup`]s from [`Light2dFragmentBindGroups`] for [`DrawLight2d`].
 pub(super) struct SetLight2dFragmentBindGroup<const I: usize>;
 impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetLight2dFragmentBindGroup<I> {
     type Param = SRes<Light2dFragmentBindGroups>;
