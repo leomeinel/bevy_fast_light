@@ -13,18 +13,27 @@ Simple 2D lighting for Bevy focused on performance over features.
 
 ### Lights
 
-| Purpose       | Component        | Config                                                           |
-| ------------- | ---------------- | ---------------------------------------------------------------- |
-| Ambient light | `AmbientLight2d` | `color` and `intensity`                                          |
-| Mesh light    | `MeshLight2d`    | `color`, `intensity` and attached `Mesh2d` that determines shape |
+| Purpose       | Component        | Config                  |
+| ------------- | ---------------- | ----------------------- |
+| Ambient light | `AmbientLight2d` | `color` and `intensity` |
+| Mesh light    | `MeshLight2d`    | `color`, `intensity`    |
 
 ### Occluders
 
-| Purpose       | Component        | Config                                  |
-| ------------- | ---------------- | --------------------------------------- |
-| Mesh occluder | `MeshOccluder2d` | Attached `Mesh2d` that determines shape |
+| Purpose       | Component        |
+| ------------- | ---------------- |
+| Mesh occluder | `MeshOccluder2d` |
 
 `Sprites` are rendered above occluders if they are on the same or a higher z-level. Also see [Showcase](#showcase).
+
+### Mesh2d
+
+The following `Components` allow the customization of their shape via attaching a `Mesh2d`:
+
+- `MeshLight2d`
+- `MeshOccluder2d`
+
+The `Mesh2d` is required for the `Components` to render.
 
 ## Limitations
 
