@@ -18,7 +18,7 @@ use bevy::{
     },
 };
 
-use crate::{light::prelude::*, occluder::prelude::*};
+use crate::{extract::prelude::*, occluder::prelude::*};
 
 /// [`ViewNode`] that renders occluders to a texture from [`OccluderTextures`].
 #[derive(Default)]

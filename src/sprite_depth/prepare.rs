@@ -24,7 +24,7 @@ use bevy::{
     },
 };
 
-use crate::{light::prelude::*, sprite_depth::prelude::*};
+use crate::{extract::prelude::*, sprite_depth::prelude::*};
 
 /// Prepare [`SpriteViewBindGroup`].
 ///

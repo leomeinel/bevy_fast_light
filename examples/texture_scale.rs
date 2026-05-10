@@ -1,4 +1,4 @@
-//! Scene with a green [`Rectangle`] as background and an amber [`MeshLight2d`] using a lower [`FastLightPlugin::texture_scale`].
+//! Scene with a green [`Rectangle`] as background and an amber [`MeshLight`] using a lower [`FastLightPlugin::texture_scale`].
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_fast_light::prelude::*;
@@ -25,7 +25,7 @@ fn setup(
     commands.insert_resource(ClearColor(tailwind::NEUTRAL_500.into()));
     commands.spawn((
         Camera2d,
-        // NOTE: `AmbientLight2d` is required to be able to render `MeshLight2d`.
+        // NOTE: `AmbientLight2d` is required to be able to render `MeshLight`.
         AmbientLight2d::default(),
     ));
 
@@ -36,13 +36,13 @@ fn setup(
     ));
 
     commands.spawn((
-        MeshLight2d {
+        MeshLight {
             color: tailwind::AMBER_500.into(),
-            // NOTE: With `AmbientLight2d` intensity at 1., you might have to increase `MeshLight2d` intensity.
+            // NOTE: With `AmbientLight2d` intensity at 1., you might have to increase `MeshLight` intensity.
             //       Otherwise it will not be visible, just like shining a flashlight at day vs. at night.
             intensity: 2.,
         },
-        // NOTE: `Mesh2d` is required for the shape of `MeshLight2d`.
+        // NOTE: `Mesh2d` is required for the shape of `MeshLight`.
         Mesh2d(meshes.add(Circle::new(200.))),
     ));
 }

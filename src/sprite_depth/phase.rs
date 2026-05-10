@@ -24,7 +24,7 @@ use bevy::{
 };
 use fixedbitset::FixedBitSet;
 
-use crate::{light::prelude::*, sprite_depth::prelude::*};
+use crate::{extract::prelude::*, sprite_depth::prelude::*};
 
 /// [`PhaseItem`] drawn in the render phase for [`Sprite`] z-level rendering.
 ///

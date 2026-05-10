@@ -24,20 +24,23 @@ use bevy::{
 };
 use bytemuck::cast_slice;
 
-use crate::{light::prelude::*, occluder::prelude::*, plugin::prelude::*, utils::prelude::*};
+use crate::{
+    extract::prelude::*, light::prelude::*, occluder::prelude::*, plugin::prelude::*,
+    utils::prelude::*,
+};
 
-/// [`CachedTexture`]s for [MeshLight2d].
+/// [`CachedTexture`]s for [`MeshLight`].
 #[derive(Resource, Default)]
-pub(super) struct Light2dTextures(pub(super) HashMap<RetainedViewEntity, CachedTexture>);
+pub(crate) struct MeshLightTextures(pub(crate) HashMap<RetainedViewEntity, CachedTexture>);
 
-/// [`Buffer`]s mapped to [`MeshLight2d`] [`Entity`]s.
+/// [`Buffer`]s mapped to [`MeshLight`] [`Entity`]s.
 #[derive(Resource, Default)]
-pub(super) struct Light2dUniformBuffers(pub(super) HashMap<Entity, Buffer>);
+pub(super) struct MeshLightUniformBuffers(pub(super) HashMap<Entity, Buffer>);
 
-/// Prepare scaled [`CachedTexture`]s and insert into [`Light2dTextures`].
-pub(super) fn prepare_light_2d_texture(
+/// Prepare scaled [`CachedTexture`]s and insert into [`MeshLightTextures`].
+pub(super) fn prepare_mesh_light_texture(
     views: Query<(&ViewTarget, &ExtractedView), With<ExtractedAmbientLight2d>>,
-    mut textures: ResMut<Light2dTextures>,
+    mut textures: ResMut<MeshLightTextures>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
     settings: Res<FastLightSettings>,
@@ -48,7 +51,7 @@ pub(super) fn prepare_light_2d_texture(
             &render_device,
             &settings,
             view_target,
-            "light_2d_texture",
+            "mesh_light_texture",
         );
 
         textures
@@ -57,10 +60,10 @@ pub(super) fn prepare_light_2d_texture(
     }
 }
 
-/// Prepare [`Light2dUniformBuffers`].
-pub(super) fn prepare_light_2d_buffers(
-    light_query: Query<(Entity, &ExtractedMeshLight2d)>,
-    mut light_buffers: ResMut<Light2dUniformBuffers>,
+/// Prepare [`MeshLightUniformBuffers`].
+pub(super) fn prepare_mesh_light_buffers(
+    light_query: Query<(Entity, &ExtractedMeshLight)>,
+    mut light_buffers: ResMut<MeshLightUniformBuffers>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
 ) {
@@ -68,7 +71,7 @@ pub(super) fn prepare_light_2d_buffers(
     for (entity, light) in &light_query {
         let light_buffer = light_buffers.0.entry(entity).or_insert_with(|| {
             render_device.create_buffer_with_data(&BufferInitDescriptor {
-                label: Some("light_2d_uniform_buffer"),
+                label: Some("mesh_light_uniform_buffer"),
                 contents: cast_slice(&[*light]),
                 usage: BufferUsages::COPY_DST | BufferUsages::UNIFORM,
             })
@@ -77,15 +80,15 @@ pub(super) fn prepare_light_2d_buffers(
     }
 }
 
-/// Prepare [`Light2dFragmentBindGroups`].
-pub(super) fn prepare_light_2d_fragment_bind_groups(
+/// Prepare [`MeshLightFragmentBindGroups`].
+pub(super) fn prepare_mesh_light_fragment_bind_groups(
     views: Query<&ExtractedView, With<ExtractedAmbientLight2d>>,
-    light_query: Query<Entity, With<ExtractedMeshLight2d>>,
-    mut light_bind_groups: ResMut<Light2dFragmentBindGroups>,
-    light_buffers: Res<Light2dUniformBuffers>,
+    light_query: Query<Entity, With<ExtractedMeshLight>>,
+    mut light_bind_groups: ResMut<MeshLightFragmentBindGroups>,
+    light_buffers: Res<MeshLightUniformBuffers>,
     render_device: Res<RenderDevice>,
     pipeline_cache: Res<PipelineCache>,
-    light_pipeline: Res<Light2dPipeline>,
+    light_pipeline: Res<MeshLightPipeline>,
     occluder_textures: Res<OccluderTextures>,
 ) {
     light_bind_groups.0.clear();
@@ -101,7 +104,7 @@ pub(super) fn prepare_light_2d_fragment_bind_groups(
             };
 
             let fragment_bind_group = render_device.create_bind_group(
-                "light_2d_fragment_bind_group",
+                "mesh_light_fragment_bind_group",
                 &pipeline_cache.get_bind_group_layout(&light_pipeline.fragment_layout),
                 &BindGroupEntries::sequential((
                     &occluder_texture.default_view,

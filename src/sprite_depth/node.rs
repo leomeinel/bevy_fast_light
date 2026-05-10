@@ -12,7 +12,7 @@ use bevy::{
     },
 };
 
-use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
+use crate::{extract::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 
 /// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture from [`OccluderTextures`].
 #[derive(Default)]

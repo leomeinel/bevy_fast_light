@@ -1,10 +1,13 @@
-//! Different light types and modules for rendering.
+//! Light types and modules for rendering [`MeshLight`].
 //!
-//! This first renders a light map to a scalable texture and then composes this to the screen texture.
+//! This renders a light map to a scalable texture.
 //!
-//! This is the third and fourth render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
+//! This is the third render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
+//!
+//! ## Note
+//!
+//! This also contains [`AmbientLight2d`] but modules for rendering that are located in [composite](crate::composite).
 
-mod extract;
 mod node;
 mod phase;
 mod pipeline;
@@ -12,16 +15,15 @@ mod plugin;
 mod prepare;
 
 pub(super) mod prelude {
-    pub(crate) use super::extract::ExtractedAmbientLight2d;
-    pub(super) use super::extract::ExtractedMeshLight2d;
-    pub(super) use super::node::{Light2dCompositeNode, Light2dNode};
-    pub(super) use super::phase::DrawLight2d;
-    pub(crate) use super::phase::Light2dPhase;
-    pub(super) use super::pipeline::{Light2dCompositePipeline, Light2dPipeline};
-    pub(crate) use super::plugin::{Light2dCompositeLabel, Light2dLabel, Light2dPlugin};
-    pub(super) use super::prepare::{Light2dTextures, Light2dUniformBuffers};
-    pub(crate) use super::{AmbientLight2d, MeshLight2d};
-    pub(super) use super::{Light2dFragmentBindGroups, SetLight2dFragmentBindGroup};
+    pub(super) use super::node::MeshLightNode;
+    pub(super) use super::phase::DrawMeshLight;
+    pub(crate) use super::phase::MeshLightPhase;
+    pub(super) use super::pipeline::MeshLightPipeline;
+    pub(crate) use super::plugin::{MeshLightLabel, MeshLightPlugin};
+    pub(crate) use super::prepare::MeshLightTextures;
+    pub(super) use super::prepare::MeshLightUniformBuffers;
+    pub(crate) use super::{AmbientLight2d, MeshLight};
+    pub(super) use super::{MeshLightFragmentBindGroups, SetMeshLightFragmentBindGroup};
 }
 
 use bevy::{
@@ -43,7 +45,7 @@ use bevy::{
     },
 };
 
-use crate::light::prelude::*;
+use crate::extract::prelude::*;
 
 /// Ambient light for fullscreen lighting in a 2D environment.
 ///
@@ -82,20 +84,20 @@ impl Default for AmbientLight2d {
 ///
 /// ## Formula
 ///
-/// color = src_color * (ambient_color + [`MeshLight2d::color`] * [`MeshLight2d::intensity`] * attenuation).
+/// color = src_color * (ambient_color + [`MeshLight::color`] * [`MeshLight::intensity`] * attenuation).
 ///
 /// ## Note
 ///
-/// attenuation decreases smoothly from the center outwards.
+/// `attenuation` decreases smoothly from the center outwards.
 #[derive(Component, Reflect, Clone, Copy)]
 #[require(SyncToRenderWorld)]
-pub struct MeshLight2d {
+pub struct MeshLight {
     /// The [`Color`] of the light.
     pub color: Color,
     /// The intensity of the light.
     pub intensity: f32,
 }
-impl Default for MeshLight2d {
+impl Default for MeshLight {
     fn default() -> Self {
         Self {
             color: Color::WHITE,
@@ -104,16 +106,16 @@ impl Default for MeshLight2d {
     }
 }
 
-/// [`BindGroup`]s mapped to [`MeshLight2d`] [`Entity`]s.
+/// [`BindGroup`]s mapped to [`MeshLight`] [`Entity`]s.
 #[derive(Resource, Default)]
-pub(super) struct Light2dFragmentBindGroups(
+pub(super) struct MeshLightFragmentBindGroups(
     pub(super) HashMap<(RetainedViewEntity, Entity), BindGroup>,
 );
 
-/// Set [`BindGroup`]s from [`Light2dFragmentBindGroups`] for [`DrawLight2d`].
-pub(super) struct SetLight2dFragmentBindGroup<const I: usize>;
-impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetLight2dFragmentBindGroup<I> {
-    type Param = SRes<Light2dFragmentBindGroups>;
+/// Set [`BindGroup`]s from [`MeshLightFragmentBindGroups`] for [`DrawMeshLight`](crate::light::prelude::DrawMeshLight).
+pub(super) struct SetMeshLightFragmentBindGroup<const I: usize>;
+impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetMeshLightFragmentBindGroup<I> {
+    type Param = SRes<MeshLightFragmentBindGroups>;
     type ViewQuery = (&'static ExtractedView, &'static ExtractedAmbientLight2d);
     type ItemQuery = ();
 

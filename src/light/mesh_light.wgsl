@@ -1,14 +1,12 @@
 #import bevy_sprite::{mesh2d_vertex_output::VertexOutput, mesh2d_view_bindings::view}
 #import bevy_render::view::frag_coord_to_uv
 
-#import bevy_fast_light::light::types::MeshLight2d
-
 @group(2) @binding(0)
 var occluder_texture: texture_2d<f32>;
 @group(2) @binding(1)
 var occluder_sampler: sampler;
 @group(2) @binding(2)
-var<uniform> light: MeshLight2d;
+var<uniform> light_color: vec4<f32>;
 
 const HALF_UV = vec2<f32>(0.5);
 const RADIUS_SQ = 0.5 * 0.5;
@@ -29,5 +27,5 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     let falloff = smoothstep(1., 0., length_sq * INV_RADIUS_SQ);
     let attenuation = falloff * falloff;
 
-    return light.color * attenuation * select(1., 0., is_occluded);
+    return light_color * attenuation * select(1., 0., is_occluded);
 }

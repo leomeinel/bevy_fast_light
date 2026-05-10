@@ -33,9 +33,9 @@ use bevy::{
     },
 };
 
-use crate::{light::prelude::*, occluder::prelude::*};
+use crate::{extract::prelude::*, occluder::prelude::*};
 
-/// [`PhaseItem`] drawn in the render phase for light occlusion from [`MeshOccluder2d`].
+/// [`PhaseItem`] drawn in the render phase for light occlusion from [`MeshOccluder`].
 pub(crate) struct OccluderPhase {
     #[allow(dead_code)]
     pub(crate) batch_set_key: OccluderBatchSetKey,
@@ -120,7 +120,7 @@ pub struct OccluderBinKey {
     draw_function: DrawFunctionId,
 }
 
-/// Draw function for light occlusion from [`MeshOccluder2d`].
+/// Draw function for light occlusion from [`MeshOccluder`].
 pub(super) type DrawOccluder = (
     SetItemPipeline,
     SetMesh2dViewBindGroup<0>,
@@ -134,7 +134,7 @@ pub(super) fn queue_occluders(
         (&ExtractedView, &RenderVisibleEntities, &Msaa),
         With<ExtractedAmbientLight2d>,
     >,
-    has_marker: Query<(), With<MeshOccluder2d>>,
+    has_marker: Query<(), With<MeshOccluder>>,
     mut occluder_render_phases: ResMut<ViewBinnedRenderPhases<OccluderPhase>>,
     mut pipelines: ResMut<SpecializedMeshPipelines<OccluderPipeline>>,
     occluder_draw_functions: Res<DrawFunctions<OccluderPhase>>,

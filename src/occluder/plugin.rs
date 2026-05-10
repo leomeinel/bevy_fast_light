@@ -36,7 +36,7 @@ impl Plugin for OccluderPlugin {
             BinnedRenderPhasePlugin::<OccluderPhase, Mesh2dPipeline>::new(
                 RenderDebugFlags::default(),
             ),
-            ExtractComponentPlugin::<MeshOccluder2d>::default(),
+            ExtractComponentPlugin::<MeshOccluder>::default(),
         ));
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {

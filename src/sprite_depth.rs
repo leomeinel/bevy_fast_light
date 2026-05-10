@@ -47,7 +47,7 @@ use bevy::{
 };
 use bytemuck::{Pod, Zeroable};
 
-use crate::light::prelude::*;
+use crate::extract::prelude::*;
 
 /// Custom implementation of `SpriteInstance`.
 ///

@@ -19,9 +19,9 @@ use bevy::{
     },
 };
 
-use crate::{light::prelude::*, plugin::prelude::*, utils::prelude::*};
+use crate::{extract::prelude::*, plugin::prelude::*, utils::prelude::*};
 
-/// [`CachedTexture`]s for [`MeshOccluder2d`](crate::prelude::MeshOccluder2d).
+/// [`CachedTexture`]s for [`MeshOccluder`](crate::prelude::MeshOccluder).
 #[derive(Resource, Default)]
 pub(crate) struct OccluderTextures(pub(crate) HashMap<RetainedViewEntity, CachedTexture>);
 

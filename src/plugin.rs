@@ -21,19 +21,21 @@ use bevy::{
     },
 };
 
-use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
+use crate::{
+    composite::prelude::*, light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*,
+};
 
 /// [`Plugin`] for fast 2D lighting.
 ///
 /// You also need to add an [`AmbientLight2d`] to a [Camera2d](bevy::camera::Camera2d) for this to work.
 ///
-/// Additionally you can spawn [`MeshLight2d`]s to light up certain areas or [`MeshOccluder2d`]s for light occlusion.
+/// Additionally you can spawn [`MeshLight`]s to light up certain areas or [`MeshOccluder`]s for light occlusion.
 pub struct FastLightPlugin {
     /// Texture scale for any non-ambient light.
     ///
-    /// Textures uses in rendering will be multiplied by this to get the light texture resolution.
+    /// Textures used in rendering will be multiplied by this to get the light texture resolution.
     ///
-    /// This currently causes artifacts for [`MeshOccluder2d`] if not set to `1.0`. Also see [this issue](https://github.com/leomeinel/bevy_fast_light/issues/6).
+    /// This currently causes artifacts for [`MeshOccluder`] if not set to `1.0`. Also see [this issue](https://github.com/leomeinel/bevy_fast_light/issues/6).
     pub texture_scale: f32,
 }
 impl Default for FastLightPlugin {
@@ -45,13 +47,25 @@ impl Plugin for FastLightPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FastLightSettings::from(self));
 
-        app.add_plugins((SpriteDepthPlugin, OccluderPlugin, Light2dPlugin));
+        app.add_plugins((
+            SpriteDepthPlugin,
+            OccluderPlugin,
+            MeshLightPlugin,
+            CompositePlugin,
+        ));
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
 
-        render_app.add_systems(ExtractSchedule, super::extract::extract_view_entities);
+        render_app.add_systems(
+            ExtractSchedule,
+            (
+                super::extract::extract_ambient_light,
+                super::extract::extract_mesh_lights,
+                super::extract::extract_view_entities,
+            ),
+        );
 
         render_app.add_render_graph_edges(
             Core2d,
@@ -60,8 +74,8 @@ impl Plugin for FastLightPlugin {
                 SpriteDepthLabel,
                 OccluderLabel,
                 Node2d::MainTransparentPass,
-                Light2dLabel,
-                Light2dCompositeLabel,
+                MeshLightLabel,
+                CompositeLabel,
                 Node2d::EndMainPass,
             ),
         );
