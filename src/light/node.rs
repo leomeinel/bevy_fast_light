@@ -9,6 +9,7 @@
 use bevy::{
     ecs::{query::QueryItem, world::World},
     log::error,
+    post_process,
     render::{
         extract_component::ComponentUniforms,
         render_graph::{NodeRunError, RenderGraphContext, ViewNode},
@@ -102,11 +103,12 @@ impl ViewNode for Light2dCompositeNode {
             return Ok(());
         };
 
+        let post_process = view_target.post_process_write();
         let fragment_bind_group = render_context.render_device().create_bind_group(
             "light_2d_composite_fragment_bind_group",
             &pipeline_cache.get_bind_group_layout(&light_composite_pipeline.fragment_layout),
             &BindGroupEntries::sequential((
-                view_target.post_process_write().source,
+                post_process.source,
                 &light_composite_pipeline.screen_sampler,
                 &light_texture.default_view,
                 &light_composite_pipeline.light_sampler,
@@ -116,8 +118,12 @@ impl ViewNode for Light2dCompositeNode {
 
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
             label: Some("light_2d_composite_render_pass"),
-            // NOTE: I'm not entirely sure if using unsampled here is correct.
-            color_attachments: &[Some(view_target.get_unsampled_color_attachment())],
+            color_attachments: &[Some(RenderPassColorAttachment {
+                view: post_process.destination,
+                depth_slice: None,
+                resolve_target: None,
+                ops: Operations::default(),
+            })],
             depth_stencil_attachment: None,
             timestamp_writes: None,
             occlusion_query_set: None,
