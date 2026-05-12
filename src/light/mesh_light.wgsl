@@ -14,7 +14,7 @@ const INV_RADIUS_SQ = 1. / RADIUS_SQ;
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    // NOTE: Because the texture might not be at the same resolution as the screen texture, we need to work
+    // NOTE: Because the texture might not be at the same resolution as the viewport, we need to work
     //       with ndc to get the uv instead of using `frag_coord_to_uv` directly.
     let viewport_ndc = position_world_to_ndc(in.world_position.xyz, view.clip_from_world);
     let viewport_uv = ndc_to_uv(viewport_ndc.xy);
