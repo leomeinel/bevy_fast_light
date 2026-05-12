@@ -13,34 +13,38 @@ use bevy::{
     },
     platform::collections::HashMap,
     render::{
+        render_resource::{TextureDescriptor, TextureDimension, TextureFormat, TextureUsages},
         renderer::RenderDevice,
         texture::{CachedTexture, TextureCache},
         view::{ExtractedView, RetainedViewEntity, ViewTarget},
     },
 };
 
-use crate::{extract::prelude::*, plugin::prelude::*, utils::prelude::*};
+use crate::extract::prelude::*;
 
 /// [`CachedTexture`]s for [`MeshOccluder`](crate::prelude::MeshOccluder).
 #[derive(Resource, Default)]
 pub(crate) struct OccluderTextures(pub(crate) HashMap<RetainedViewEntity, CachedTexture>);
 
-/// Prepare scaled [`CachedTexture`]s and insert into [`OccluderTextures`].
+/// Prepare [`CachedTexture`]s and insert into [`OccluderTextures`].
 pub(super) fn prepare_occluder_texture(
     views: Query<(&ViewTarget, &ExtractedView), With<ExtractedAmbientLight2d>>,
     mut textures: ResMut<OccluderTextures>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
-    settings: Res<FastLightSettings>,
 ) {
     for (view_target, extracted_view) in views {
-        let texture = cached_scaled_2d_texture(
-            &mut texture_cache,
-            &render_device,
-            view_target,
-            settings.texture_scale,
-            "occluder_texture",
-        );
+        let texture_descriptor = TextureDescriptor {
+            label: Some("occluder_texture").into(),
+            size: view_target.main_texture().size(),
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Rgba8Unorm,
+            usage: TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        };
+        let texture = texture_cache.get(&render_device, texture_descriptor);
 
         textures
             .0

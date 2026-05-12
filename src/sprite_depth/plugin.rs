@@ -1,4 +1,4 @@
-//! Plugin for rendering z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture.
+//! Plugin for rendering z-levels of [`Sprite`](bevy::sprite::Sprite)s to a texture.
 
 use bevy::{
     app::{App, Plugin},
@@ -17,7 +17,7 @@ use bevy::{
 
 use crate::sprite_depth::prelude::*;
 
-/// Plugin for rendering z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture.
+/// Plugin for rendering z-levels of [`Sprite`](bevy::sprite::Sprite)s to a texture.
 pub(crate) struct SpriteDepthPlugin;
 impl Plugin for SpriteDepthPlugin {
     fn build(&self, app: &mut App) {

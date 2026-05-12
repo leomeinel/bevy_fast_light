@@ -3,7 +3,7 @@
  * - https://bevy.org/examples/shaders/custom-post-processing/
  */
 
-//! [`Plugin`] for for rendering [`MeshLight`]s to a scalable texture.
+//! [`Plugin`] for for rendering [`MeshLight`]s to a texture.
 
 use bevy::{
     app::{App, Plugin},
@@ -12,7 +12,6 @@ use bevy::{
     ecs::schedule::IntoScheduleConfigs as _,
     render::{
         Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
-        extract_resource::ExtractResourcePlugin,
         render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
             AddRenderCommand as _, BinnedRenderPhasePlugin, DrawFunctions, ViewBinnedRenderPhases,
@@ -22,9 +21,9 @@ use bevy::{
     sprite_render::{Mesh2dPipeline, init_mesh_2d_pipeline},
 };
 
-use crate::{light::prelude::*, occluder::prelude::*, plugin::prelude::*};
+use crate::{light::prelude::*, occluder::prelude::*};
 
-/// [`Plugin`] for rendering [`MeshLight`]s to a scalable texture.
+/// [`Plugin`] for rendering [`MeshLight`]s to a texture.
 pub(crate) struct MeshLightPlugin;
 impl Plugin for MeshLightPlugin {
     fn build(&self, app: &mut App) {
@@ -34,7 +33,6 @@ impl Plugin for MeshLightPlugin {
             BinnedRenderPhasePlugin::<MeshLightPhase, Mesh2dPipeline>::new(
                 RenderDebugFlags::default(),
             ),
-            ExtractResourcePlugin::<FastLightSettings>::default(),
         ));
 
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {

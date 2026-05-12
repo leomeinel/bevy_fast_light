@@ -6,7 +6,6 @@ mod light;
 mod occluder;
 mod plugin;
 mod sprite_depth;
-mod utils;
 
 pub mod prelude {
     pub use crate::light::{AmbientLight2d, MeshLight};

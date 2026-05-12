@@ -5,7 +5,7 @@ use bevy_fast_light::prelude::*;
 
 fn main() -> AppExit {
     App::new()
-        .add_plugins((DefaultPlugins, FastLightPlugin::default()))
+        .add_plugins((DefaultPlugins, FastLightPlugin))
         .add_systems(Startup, setup)
         .run()
 }

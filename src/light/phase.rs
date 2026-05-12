@@ -4,7 +4,7 @@
  * - https://github.com/bevyengine/bevy/blob/main/crates/bevy_core_pipeline/src/core_2d/mod.rs
  */
 
-//! [`PhaseItem`]s and related for rendering [`MeshLight`]s to a scalable texture.
+//! [`PhaseItem`]s and related for rendering [`MeshLight`]s to a texture.
 
 use std::ops::Range;
 
@@ -36,7 +36,7 @@ use bevy::{
 
 use crate::{extract::prelude::*, light::prelude::*};
 
-/// [`PhaseItem`] drawn in the render phase for rendering [`MeshLight`]s to a scalable texture.
+/// [`PhaseItem`] drawn in the render phase for rendering [`MeshLight`]s to a texture.
 pub(crate) struct MeshLightPhase {
     #[allow(dead_code)]
     pub(crate) batch_set_key: MeshLightBatchSetKey,
@@ -121,7 +121,7 @@ pub struct MeshLightBinKey {
     draw_function: DrawFunctionId,
 }
 
-/// Draw function for rendering [`MeshLight`]s to a scalable texture.
+/// Draw function for rendering [`MeshLight`]s to a texture.
 pub(super) type DrawMeshLight = (
     SetItemPipeline,
     SetMesh2dViewBindGroup<0>,

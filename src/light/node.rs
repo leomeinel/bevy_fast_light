@@ -4,7 +4,7 @@
  * - https://github.com/jgayfer/bevy_light_2d
  */
 
-//! [`ViewNode`]s for rendering [`MeshLight`]s to a scalable texture.
+//! [`ViewNode`]s for rendering [`MeshLight`]s to a texture.
 
 use bevy::{
     ecs::{query::QueryItem, world::World},
@@ -20,7 +20,7 @@ use bevy::{
 
 use crate::{extract::prelude::*, light::prelude::*};
 
-/// [`ViewNode`] that renders non-ambient lights to a scalable texture from [`MeshLightTextures`].
+/// [`ViewNode`] that renders non-ambient lights to a texture from [`MeshLightTextures`].
 #[derive(Default)]
 pub(super) struct MeshLightNode;
 impl ViewNode for MeshLightNode {

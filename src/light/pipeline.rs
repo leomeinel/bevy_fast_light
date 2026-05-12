@@ -3,7 +3,7 @@
  * - https://bevy.org/examples/shaders/custom-post-processing/
  */
 
-//! Render pipelines for rendering [`MeshLight`](crate::prelude::MeshLight)s to a scalable texture.
+//! Render pipelines for rendering [`MeshLight`](crate::prelude::MeshLight)s to a texture.
 
 use bevy::{
     asset::{AssetServer, Handle, load_embedded_asset},

@@ -1,6 +1,6 @@
 //! Light types and modules for rendering [`MeshLight`].
 //!
-//! This renders a light map to a scalable texture.
+//! This renders a light map to a texture.
 //!
 //! This is the third render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 //!

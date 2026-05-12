@@ -1,4 +1,4 @@
-//! [`ViewNode`]s for rendering z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture.
+//! [`ViewNode`]s for rendering z-levels of [`Sprite`](bevy::sprite::Sprite)s to a texture.
 
 use bevy::{
     ecs::{query::QueryItem, world::World},
@@ -14,7 +14,7 @@ use bevy::{
 
 use crate::{extract::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 
-/// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a scalable texture from [`OccluderTextures`].
+/// [`ViewNode`] that renders the z-levels of [`Sprite`](bevy::sprite::Sprite)s to a texture from [`OccluderTextures`].
 #[derive(Default)]
 pub(super) struct SpriteDepthNode;
 impl ViewNode for SpriteDepthNode {

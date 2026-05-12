@@ -2,23 +2,15 @@
 //!
 //! ## Render stages
 //!
-//! 1. Render to a scalable texture that uses the red channel for z-levels of all [`Sprites`](bevy::sprite::Sprite)s.
-//! 2. Render to a scalable texture that uses the red channel for determining if an occluder exists and the green channel for its z-level.
-//! 3. Render a light map to a scalable texture.
+//! 1. Render to a texture that uses the red channel for z-levels of all [`Sprites`](bevy::sprite::Sprite)s.
+//! 2. Render to a texture that uses the red channel for determining if an occluder exists and the green channel for its z-level.
+//! 3. Render a light map to a texture.
 //! 4. Compose from light map to screen texture.
-
-pub(crate) mod prelude {
-    pub(crate) use super::FastLightSettings;
-}
 
 use bevy::{
     app::{App, Plugin},
     core_pipeline::core_2d::graph::{Core2d, Node2d},
-    ecs::resource::Resource,
-    render::{
-        ExtractSchedule, RenderApp, extract_resource::ExtractResource,
-        render_graph::RenderGraphExt as _,
-    },
+    render::{ExtractSchedule, RenderApp, render_graph::RenderGraphExt as _},
 };
 
 use crate::{
@@ -30,23 +22,9 @@ use crate::{
 /// You also need to add an [`AmbientLight2d`] to a [Camera2d](bevy::camera::Camera2d) for this to work.
 ///
 /// Additionally you can spawn [`MeshLight`]s to light up certain areas or [`MeshOccluder`]s for light occlusion.
-pub struct FastLightPlugin {
-    /// Texture scale for any non-ambient light.
-    ///
-    /// Textures used in rendering will be multiplied by this to get the light texture resolution.
-    ///
-    /// This currently causes artifacts for [`MeshOccluder`] if not set to `1.0`. Also see [this issue](https://github.com/leomeinel/bevy_fast_light/issues/6).
-    pub texture_scale: f32,
-}
-impl Default for FastLightPlugin {
-    fn default() -> Self {
-        Self { texture_scale: 1. }
-    }
-}
+pub struct FastLightPlugin;
 impl Plugin for FastLightPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(FastLightSettings::from(self));
-
         app.add_plugins((
             SpriteDepthPlugin,
             OccluderPlugin,
@@ -79,20 +57,5 @@ impl Plugin for FastLightPlugin {
                 Node2d::EndMainPass,
             ),
         );
-    }
-}
-
-/// Settings from [`FastLightPlugin`] as a [`Resource`].
-///
-/// This cannot be changed independently and should always be derived from [`FastLightPlugin`].
-#[derive(Resource, Clone, Copy, ExtractResource)]
-pub(crate) struct FastLightSettings {
-    pub(crate) texture_scale: f32,
-}
-impl From<&FastLightPlugin> for FastLightSettings {
-    fn from(plugin: &FastLightPlugin) -> Self {
-        Self {
-            texture_scale: plugin.texture_scale,
-        }
     }
 }

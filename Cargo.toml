@@ -121,7 +121,3 @@ path = "examples/mesh_light.rs"
 [[example]]
 name = "mesh_occluder"
 path = "examples/mesh_occluder.rs"
-
-[[example]]
-name = "texture_scale"
-path = "examples/texture_scale.rs"

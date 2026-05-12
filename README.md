@@ -71,12 +71,6 @@ Scene with a light sky colored `AmbientLight2d` with a lower `intensity`, a gree
 
 <img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/mesh_occluder.webp?raw=true" width="400" alt="mesh occluder example">
 
-#### `texture_scale.rs`
-
-Scene with a green `Rectangle` as background and an amber `MeshLight` using a lower `texture_scale`.
-
-<img src="https://github.com/leomeinel/bevy_fast_light/blob/main/static/texture_scale.webp?raw=true" width="400" alt="texture scale example">
-
 ## Alternatives
 
 - [bevy_firefly](https://crates.io/crates/bevy_firefly)

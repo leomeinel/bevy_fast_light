@@ -3,7 +3,7 @@
  * - https://github.com/PVDoriginal/firefly
  */
 
-//! Modules for rendering to a scalable texture that uses the red channel for z-levels of all [`Sprite`](bevy::sprite::Sprite)s.
+//! Modules for rendering to a texture that uses the red channel for z-levels of all [`Sprite`](bevy::sprite::Sprite)s.
 //!
 //! This is the first render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 

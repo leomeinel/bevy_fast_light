@@ -16,6 +16,7 @@ use bevy::{
     render::{
         render_resource::{
             BindGroupEntries, Buffer, BufferInitDescriptor, BufferUsages, PipelineCache,
+            TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
         renderer::{RenderDevice, RenderQueue},
         texture::{CachedTexture, TextureCache},
@@ -24,10 +25,7 @@ use bevy::{
 };
 use bytemuck::cast_slice;
 
-use crate::{
-    extract::prelude::*, light::prelude::*, occluder::prelude::*, plugin::prelude::*,
-    utils::prelude::*,
-};
+use crate::{extract::prelude::*, light::prelude::*, occluder::prelude::*};
 
 /// [`CachedTexture`]s for [`MeshLight`].
 #[derive(Resource, Default)]
@@ -37,22 +35,25 @@ pub(crate) struct MeshLightTextures(pub(crate) HashMap<RetainedViewEntity, Cache
 #[derive(Resource, Default)]
 pub(super) struct MeshLightUniformBuffers(pub(super) HashMap<Entity, Buffer>);
 
-/// Prepare scaled [`CachedTexture`]s and insert into [`MeshLightTextures`].
+/// Prepare [`CachedTexture`]s and insert into [`MeshLightTextures`].
 pub(super) fn prepare_mesh_light_texture(
     views: Query<(&ViewTarget, &ExtractedView), With<ExtractedAmbientLight2d>>,
     mut textures: ResMut<MeshLightTextures>,
     mut texture_cache: ResMut<TextureCache>,
     render_device: Res<RenderDevice>,
-    settings: Res<FastLightSettings>,
 ) {
     for (view_target, extracted_view) in views {
-        let texture = cached_scaled_2d_texture(
-            &mut texture_cache,
-            &render_device,
-            view_target,
-            settings.texture_scale,
-            "mesh_light_texture",
-        );
+        let texture_descriptor = TextureDescriptor {
+            label: Some("mesh_light_texture").into(),
+            size: view_target.main_texture().size(),
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Rgba8Unorm,
+            usage: TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        };
+        let texture = texture_cache.get(&render_device, texture_descriptor);
 
         textures
             .0
