@@ -49,8 +49,8 @@ pub(super) fn prepare_mesh_light_texture(
         let texture = cached_scaled_2d_texture(
             &mut texture_cache,
             &render_device,
-            &settings,
             view_target,
+            settings.texture_scale,
             "mesh_light_texture",
         );
 

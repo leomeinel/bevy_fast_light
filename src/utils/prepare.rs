@@ -9,22 +9,20 @@ use bevy::render::{
     view::ViewTarget,
 };
 
-use crate::plugin::prelude::*;
-
 /// [`CachedTexture`] used by prepare systems.
 ///
 /// It uses [`TextureFormat::Rgba8Unorm`] for maximum compatibility and supports [`TextureUsages::RENDER_ATTACHMENT`] and [`TextureUsages::TEXTURE_BINDING`].
 pub(crate) fn cached_scaled_2d_texture(
     texture_cache: &mut TextureCache,
     render_device: &RenderDevice,
-    settings: &FastLightSettings,
     view_target: &ViewTarget,
+    texture_scale: f32,
     label: &'static str,
 ) -> CachedTexture {
     let size = view_target.main_texture().size();
     let size = Extent3d {
-        width: (size.width as f32 * settings.texture_scale).round() as u32,
-        height: (size.height as f32 * settings.texture_scale).round() as u32,
+        width: (size.width as f32 * texture_scale).round() as u32,
+        height: (size.height as f32 * texture_scale).round() as u32,
         ..size
     };
     let texture_descriptor = TextureDescriptor {
