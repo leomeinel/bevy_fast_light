@@ -1,5 +1,5 @@
 #import bevy_sprite::{mesh2d_vertex_output::VertexOutput, mesh2d_view_bindings::view}
-#import bevy_render::view::{position_world_to_ndc, ndc_to_uv}
+#import bevy_render::view::frag_coord_to_uv
 
 @group(2) @binding(0)
 var occluder_texture: texture_2d<f32>;
@@ -9,15 +9,12 @@ var occluder_sampler: sampler;
 var<uniform> light_color: vec4<f32>;
 
 const HALF_UV = vec2<f32>(0.5);
-const RADIUS_SQ = 0.5 * 0.5;
-const INV_RADIUS_SQ = 1. / RADIUS_SQ;
+const INV_RADIUS_SQ = 1. / (0.5 * 0.5);
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    // NOTE: Because the texture might not be at the same resolution as the viewport, we need to work
-    //       with ndc to get the uv instead of using `frag_coord_to_uv` directly.
-    let viewport_ndc = position_world_to_ndc(in.world_position.xyz, view.clip_from_world);
-    let viewport_uv = ndc_to_uv(viewport_ndc.xy);
+    // NOTE: This is not technically correct, but since the output texture is always at viewport resolution this works.
+    let viewport_uv = frag_coord_to_uv(in.position.xy, view.viewport);
     let occluder_color = textureSample(occluder_texture, occluder_sampler, viewport_uv);
     let sprite_depth = occluder_color.r;
     let is_occluder = occluder_color.g > 0.5;
