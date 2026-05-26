@@ -148,6 +148,3 @@ rustflags = [
 # Custom
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))']
 runner = "wasm-server-runner"
-
-[build]
-jobs = 2 # number of parallel jobs, defaults to # of CPUs
