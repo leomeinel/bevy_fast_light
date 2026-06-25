@@ -14,7 +14,7 @@ readme = "README.md"
 exclude = ["assets/*", "static/*"]
 
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
  "bevy_core_pipeline",
  "bevy_log",
  "bevy_sprite_render",
@@ -23,7 +23,7 @@ fixedbitset = "0.5"
 bytemuck = "1.25"
 
 [dev-dependencies]
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
  "2d",
  "debug",
 ] }

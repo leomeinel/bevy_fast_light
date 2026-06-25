@@ -1,8 +1,11 @@
 //! Preparation [`RenderSystems`](bevy::render::RenderSystems).
 
 use bevy::{
-    asset::{AssetEvent, AssetId},
-    core_pipeline::tonemapping::{Tonemapping, TonemappingLuts, get_lut_bindings},
+    asset::AssetEvent,
+    core_pipeline::{
+        core_2d::Transparent2d,
+        tonemapping::{Tonemapping, TonemappingLuts, get_lut_bindings},
+    },
     ecs::{
         entity::Entity,
         query::With,
@@ -30,7 +33,7 @@ use crate::{extract::prelude::*, sprite_depth::prelude::*};
 ///
 /// This is mostly copied from [`prepare_sprite_view_bind_groups`](bevy::sprite_render::prepare_sprite_view_bind_groups).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub(super) fn prepare_sprite_depth_view_bind_groups(
     mut commands: Commands,
     render_device: Res<RenderDevice>,
@@ -65,7 +68,7 @@ pub(super) fn prepare_sprite_depth_view_bind_groups(
 ///
 /// This is mostly copied from [`prepare_sprite_image_bind_groups`](bevy::sprite_render::prepare_sprite_image_bind_groups).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub(super) fn prepare_sprite_depth_image_bind_groups(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
@@ -76,7 +79,7 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
     gpu_images: Res<RenderAssets<GpuImage>>,
     extracted_sprites: Res<ExtractedSprites>,
     extracted_slices: Res<ExtractedSlices>,
-    mut phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
+    mut phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
     events: Res<SpriteAssetEvents>,
     mut batches: ResMut<SpriteDepthBatches>,
 ) {
@@ -106,7 +109,7 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
         let mut current_batch = None;
         let mut batch_item_index = 0;
         let mut batch_image_size = Vec2::ZERO;
-        let mut batch_image_handle = AssetId::invalid();
+        let mut batch_image_handle = None;
 
         // Iterate through the phase items and detect when successive sprites that can be batched.
         // Spawn an entity with a `SpriteBatch` component for each possible batch.
@@ -122,35 +125,33 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
                 // If there is a phase item that is not a sprite, then we must start a new
                 // batch to draw the other phase item(s) and to respect draw order. This can be
                 // done by invalidating the batch_image_handle
-                batch_image_handle = AssetId::invalid();
+                batch_image_handle = None;
                 continue;
             };
 
-            if batch_image_handle != extracted_sprite.image_handle_id {
+            if batch_image_handle != Some(extracted_sprite.image_handle_id) {
                 let Some(gpu_image) = gpu_images.get(extracted_sprite.image_handle_id) else {
                     continue;
                 };
 
                 batch_image_size = gpu_image.size_2d().as_vec2();
-                batch_image_handle = extracted_sprite.image_handle_id;
-                image_bind_groups
-                    .0
-                    .entry(batch_image_handle)
-                    .or_insert_with(|| {
-                        render_device.create_bind_group(
-                            "sprite_depth_material_bind_group",
-                            &pipeline_cache.get_bind_group_layout(&sprite_pipeline.material_layout),
-                            &BindGroupEntries::sequential((
-                                &gpu_image.texture_view,
-                                &gpu_image.sampler,
-                            )),
-                        )
-                    });
+                let image_handle = extracted_sprite.image_handle_id;
+                batch_image_handle = Some(image_handle);
+                image_bind_groups.0.entry(image_handle).or_insert_with(|| {
+                    render_device.create_bind_group(
+                        "sprite_depth_material_bind_group",
+                        &pipeline_cache.get_bind_group_layout(&sprite_pipeline.material_layout),
+                        &BindGroupEntries::sequential((
+                            &gpu_image.texture_view,
+                            &gpu_image.sampler,
+                        )),
+                    )
+                });
 
                 batch_item_index = item_index;
                 current_batch = Some(batches.entry((*retained_view, item.entity())).insert(
                     SpriteDepthBatch {
-                        image_handle_id: batch_image_handle,
+                        image_handle_id: image_handle,
                         range: index..index,
                     },
                 ));
@@ -303,11 +304,11 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
     }
 }
 
-/// Apply scaling.
+/// Scales a texture to fit within a given quad size with keeping the aspect ratio.
 ///
-/// This is mostly copied from [`sprite_render`](bevy::sprite_render).
+/// This is mostly copied from [`sprite_render::render`](bevy::sprite_render::render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 fn apply_scaling(
     scaling_mode: SpriteScalingMode,
     texture_size: Vec2,

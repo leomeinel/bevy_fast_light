@@ -22,7 +22,7 @@ use bevy::{
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 #[derive(Resource)]
 pub(super) struct SpriteDepthPipeline {
     pub(super) view_layout: BindGroupLayoutDescriptor,
@@ -64,6 +64,8 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
                 shader_defs.push("TONEMAP_METHOD_BLENDER_FILMIC".into());
             } else if method == SpritePipelineKey::TONEMAP_METHOD_TONY_MC_MAPFACE {
                 shader_defs.push("TONEMAP_METHOD_TONY_MC_MAPFACE".into());
+            } else if method == SpritePipelineKey::TONEMAP_METHOD_PBR_NEUTRAL {
+                shader_defs.push("TONEMAP_METHOD_PBR_NEUTRAL".into());
             }
 
             // Debanding is tied to tonemapping in the shader, cannot run without it.
@@ -71,6 +73,15 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
                 shader_defs.push("DEBAND_DITHER".into());
             }
         }
+
+        if key.contains(SpritePipelineKey::SRGB_COMPOSITING) {
+            shader_defs.push("SRGB_OUTPUT".into());
+        }
+        if key.contains(SpritePipelineKey::OKLAB_COMPOSITING) {
+            shader_defs.push("OKLAB_OUTPUT".into());
+        }
+
+        let format = key.target_format();
 
         let instance_rate_vertex_buffer_layout = VertexBufferLayout {
             array_stride: 64,
@@ -114,7 +125,7 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
                 shader: self.shader.clone(),
                 shader_defs,
                 targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::Rgba8Unorm,
+                    format,
                     // NOTE: This is needed since we need to alpha blend the rendered sprite z-levels.
                     //       Since we are multiplying everything in `sprite_depth` by `select`, we need `BlendState::PREMULTIPLIED_ALPHA_BLENDING`.
                     blend: Some(BlendState::PREMULTIPLIED_ALPHA_BLENDING),
@@ -124,7 +135,11 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
             }),
             layout: vec![self.view_layout.clone(), self.material_layout.clone()],
             depth_stencil: None,
-            multisample: MultisampleState::default(),
+            multisample: MultisampleState {
+                count: key.msaa_samples(),
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
             label: Some("sprite_depth_pipeline".into()),
             ..default()
         }
@@ -135,7 +150,7 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
 ///
 /// This is mostly copied from [`init_sprite_pipeline`](bevy::sprite_render::init_sprite_pipeline).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub(super) fn init_sprite_depth_pipeline(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tonemapping_lut_entries = get_lut_bind_group_layout_entries();
     let view_layout = BindGroupLayoutDescriptor::new(

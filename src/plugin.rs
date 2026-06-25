@@ -9,8 +9,7 @@
 
 use bevy::{
     app::{App, Plugin},
-    core_pipeline::core_2d::graph::{Core2d, Node2d},
-    render::{ExtractSchedule, RenderApp, render_graph::RenderGraphExt as _},
+    render::{ExtractSchedule, RenderApp},
 };
 
 use crate::{
@@ -42,19 +41,6 @@ impl Plugin for FastLightPlugin {
                 super::extract::extract_ambient_light,
                 super::extract::extract_mesh_lights,
                 super::extract::extract_view_entities,
-            ),
-        );
-
-        render_app.add_render_graph_edges(
-            Core2d,
-            (
-                Node2d::MainOpaquePass,
-                SpriteDepthLabel,
-                OccluderLabel,
-                Node2d::MainTransparentPass,
-                MeshLightLabel,
-                CompositeLabel,
-                Node2d::EndMainPass,
             ),
         );
     }

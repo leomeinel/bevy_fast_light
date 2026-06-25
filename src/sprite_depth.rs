@@ -3,22 +3,22 @@
  * - https://github.com/PVDoriginal/firefly
  */
 
+// TODO: This should eventually support (only) SpriteMesh/SpriteMaterial.
+
 //! Modules for rendering to a texture that uses the red channel for z-levels of all [`Sprite`](bevy::sprite::Sprite)s.
 //!
 //! This is the first render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 
-mod node;
 mod phase;
 mod pipeline;
 mod plugin;
 mod prepare;
+mod system;
 
 pub(crate) mod prelude {
-    pub(super) use super::node::SpriteDepthNode;
     pub(super) use super::phase::DrawSpriteDepth;
-    pub(crate) use super::phase::SpriteDepthPhase;
     pub(super) use super::pipeline::SpriteDepthPipeline;
-    pub(crate) use super::plugin::{SpriteDepthLabel, SpriteDepthPlugin};
+    pub(crate) use super::plugin::SpriteDepthPlugin;
     pub(super) use super::{
         DrawSpriteDepthBatch, SetSpriteDepthTextureBindGroup, SpriteDepthBatch, SpriteDepthBatches,
         SpriteDepthImageBindGroups, SpriteDepthInstance, SpriteDepthMeta,
@@ -53,7 +53,7 @@ use crate::extract::prelude::*;
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
 pub(super) struct SpriteDepthInstance {
@@ -80,7 +80,7 @@ impl SpriteDepthInstance {
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 #[derive(Resource)]
 pub(super) struct SpriteDepthMeta {
     sprite_index_buffer: RawBufferVec<u32>,
@@ -99,7 +99,7 @@ impl Default for SpriteDepthMeta {
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 #[derive(Resource, Deref, DerefMut, Default)]
 pub(super) struct SpriteDepthBatches(HashMap<(RetainedViewEntity, Entity), SpriteDepthBatch>);
 
@@ -107,7 +107,7 @@ pub(super) struct SpriteDepthBatches(HashMap<(RetainedViewEntity, Entity), Sprit
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub(super) struct SpriteDepthBatch {
     pub(super) image_handle_id: AssetId<Image>,
@@ -118,7 +118,7 @@ pub(super) struct SpriteDepthBatch {
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 #[derive(Resource, Default)]
 pub(super) struct SpriteDepthImageBindGroups(HashMap<AssetId<Image>, BindGroup>);
 
@@ -126,7 +126,7 @@ pub(super) struct SpriteDepthImageBindGroups(HashMap<AssetId<Image>, BindGroup>)
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub(super) struct SetSpriteDepthTextureBindGroup<const I: usize>;
 impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetSpriteDepthTextureBindGroup<I> {
     type Param = (SRes<SpriteDepthImageBindGroups>, SRes<SpriteDepthBatches>);
@@ -137,15 +137,19 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetSpriteDepthTextureBin
         item: &P,
         (view, _): ROQueryItem<'w, '_, Self::ViewQuery>,
         _entity: Option<()>,
-        (bind_groups, batches): SystemParamItem<'w, '_, Self::Param>,
+        (image_bind_groups, batches): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let bind_groups = bind_groups.into_inner();
+        let image_bind_groups = image_bind_groups.into_inner();
         let Some(batch) = batches.get(&(view.retained_view_entity, item.entity())) else {
             return RenderCommandResult::Skip;
         };
 
-        pass.set_bind_group(I, bind_groups.0.get(&batch.image_handle_id).unwrap(), &[]);
+        pass.set_bind_group(
+            I,
+            image_bind_groups.0.get(&batch.image_handle_id).unwrap(),
+            &[],
+        );
         RenderCommandResult::Success
     }
 }
@@ -154,7 +158,7 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetSpriteDepthTextureBin
 ///
 /// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub(super) struct DrawSpriteDepthBatch;
 impl<P: PhaseItem> RenderCommand<P> for DrawSpriteDepthBatch {
     type Param = (SRes<SpriteDepthMeta>, SRes<SpriteDepthBatches>);

@@ -12,11 +12,14 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        system::{Query, Res, ResMut, SystemChangeTick},
+        resource::Resource,
+        system::{Query, Res, ResMut},
     },
     log::error,
     mesh::Mesh2d,
+    prelude::{Deref, DerefMut},
     render::{
+        camera::{DirtySpecializations, PendingQueues},
         mesh::RenderMesh,
         render_asset::RenderAssets,
         render_phase::{
@@ -26,11 +29,11 @@ use bevy::{
         },
         render_resource::{CachedRenderPipelineId, PipelineCache, SpecializedMeshPipelines},
         sync_world::MainEntity,
-        view::{ExtractedView, Msaa, RenderVisibleEntities},
+        view::{ExtractedView, RenderVisibleEntities},
     },
     sprite_render::{
         DrawMesh2d, Mesh2dPipelineKey, RenderMesh2dInstances, SetMesh2dBindGroup,
-        SetMesh2dViewBindGroup,
+        SetMesh2dViewBindGroup, ViewKeyCache,
     },
 };
 
@@ -130,51 +133,71 @@ pub(super) type DrawMeshLight = (
     DrawMesh2d,
 );
 
+/// [`PendingQueues`] for [`MeshLight`].
+#[derive(Default, Deref, DerefMut, Resource)]
+pub(super) struct PendingLightQueues(PendingQueues);
+
 /// Queue drawable entities for [`ViewBinnedRenderPhases<MeshLightPhase>`].
 pub(super) fn queue_mesh_lights(
-    mut views: Query<
-        (&ExtractedView, &RenderVisibleEntities, &Msaa),
-        With<ExtractedAmbientLight2d>,
-    >,
+    mut views: Query<(&ExtractedView, &RenderVisibleEntities), With<ExtractedAmbientLight2d>>,
     has_marker: Query<(), With<ExtractedMeshLight>>,
     mut light_render_phases: ResMut<ViewBinnedRenderPhases<MeshLightPhase>>,
+    mut pending_queues: ResMut<PendingLightQueues>,
     mut pipelines: ResMut<SpecializedMeshPipelines<MeshLightPipeline>>,
+    dirty_specializations: Res<DirtySpecializations>,
     light_draw_functions: Res<DrawFunctions<MeshLightPhase>>,
     pipeline_cache: Res<PipelineCache>,
     light_draw_pipeline: Res<MeshLightPipeline>,
     render_meshes: Res<RenderAssets<RenderMesh>>,
     render_mesh_instances: Res<RenderMesh2dInstances>,
-    system_change_tick: SystemChangeTick,
+    view_key_cache: Res<ViewKeyCache>,
 ) {
-    let draw_function = light_draw_functions.read().id::<DrawMeshLight>();
-
-    for (view, visible_entities, msaa) in &mut views {
-        let Some(phase) = light_render_phases.get_mut(&view.retained_view_entity) else {
+    for (view, visible_entities) in &mut views {
+        let (Some(phase), Some(view_key), Some(render_visible_mesh_entities)) = (
+            light_render_phases.get_mut(&view.retained_view_entity),
+            view_key_cache.get(&view.retained_view_entity.main_entity),
+            visible_entities.get::<Mesh2d>(),
+        ) else {
             continue;
         };
-        let view_key = Mesh2dPipelineKey::from_msaa_samples(msaa.samples())
-            | Mesh2dPipelineKey::from_hdr(view.hdr);
+        let draw_function = light_draw_functions.read().id::<DrawMeshLight>();
+        let view_pending_queues = pending_queues.prepare_for_new_frame(view.retained_view_entity);
+        for &main_entity in dirty_specializations
+            .iter_to_dequeue(view.retained_view_entity, render_visible_mesh_entities)
+        {
+            phase.remove(main_entity);
+        }
 
-        for (render_entity, visible_entity) in visible_entities.iter::<Mesh2d>() {
+        for (render_entity, visible_entity) in dirty_specializations.iter_to_queue(
+            view.retained_view_entity,
+            render_visible_mesh_entities,
+            &view_pending_queues.prev_frame,
+        ) {
             if has_marker.get(*render_entity).is_err() {
                 continue;
             }
             let Some(mesh_instance) = render_mesh_instances.get(visible_entity) else {
+                view_pending_queues
+                    .current_frame
+                    .insert((*render_entity, *visible_entity));
                 continue;
             };
             let Some(mesh) = render_meshes.get(mesh_instance.mesh_asset_id) else {
                 continue;
             };
 
-            let mesh_key =
-                view_key | Mesh2dPipelineKey::from_primitive_topology(mesh.primitive_topology());
-            let pipeline = pipelines.specialize(
+            let mesh_key = *view_key
+                | Mesh2dPipelineKey::from_primitive_topology_and_strip_index(
+                    mesh.primitive_topology(),
+                    mesh.index_format(),
+                );
+            let pipeline_id = pipelines.specialize(
                 &pipeline_cache,
                 &light_draw_pipeline,
                 mesh_key,
                 &mesh.layout,
             );
-            let pipeline = match pipeline {
+            let pipeline = match pipeline_id {
                 Ok(id) => id,
                 Err(err) => {
                     error!("{}", err);
@@ -195,7 +218,6 @@ pub(super) fn queue_mesh_lights(
                 InputUniformIndex::default(),
                 // NOTE: We can't use `BinnedRenderPhaseType::BatchableMesh` because we are passing per object uniforms.
                 BinnedRenderPhaseType::UnbatchableMesh,
-                system_change_tick.last_run(),
             );
         }
     }

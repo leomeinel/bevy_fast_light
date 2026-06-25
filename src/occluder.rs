@@ -4,19 +4,18 @@
 //!
 //! This is the second render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 
-mod node;
 mod phase;
 mod pipeline;
 mod plugin;
 mod prepare;
+mod system;
 
 pub(super) mod prelude {
     pub(crate) use super::MeshOccluder;
-    pub(super) use super::node::OccluderNode;
-    pub(super) use super::phase::DrawOccluder;
     pub(crate) use super::phase::OccluderPhase;
+    pub(super) use super::phase::{DrawOccluder, PendingOccluderQueues};
     pub(super) use super::pipeline::OccluderPipeline;
-    pub(crate) use super::plugin::{OccluderLabel, OccluderPlugin, OccluderSet};
+    pub(crate) use super::plugin::{OccluderPlugin, OccluderSet};
     pub(crate) use super::prepare::OccluderTextures;
 }
 

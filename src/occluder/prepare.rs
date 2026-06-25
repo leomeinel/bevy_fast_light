@@ -35,7 +35,7 @@ pub(super) fn prepare_occluder_texture(
 ) {
     for (view_target, extracted_view) in views {
         let texture_descriptor = TextureDescriptor {
-            label: Some("occluder_texture").into(),
+            label: Some("occluder_texture"),
             size: view_target.main_texture().size(),
             mip_level_count: 1,
             sample_count: 1,

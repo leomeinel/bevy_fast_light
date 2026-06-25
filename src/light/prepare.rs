@@ -44,7 +44,7 @@ pub(super) fn prepare_mesh_light_texture(
 ) {
     for (view_target, extracted_view) in views {
         let texture_descriptor = TextureDescriptor {
-            label: Some("mesh_light_texture").into(),
+            label: Some("mesh_light_texture"),
             size: view_target.main_texture().size(),
             mip_level_count: 1,
             sample_count: 1,

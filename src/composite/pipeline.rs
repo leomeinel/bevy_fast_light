@@ -12,7 +12,6 @@ use bevy::{
         resource::Resource,
         system::{Commands, Res},
     },
-    image::BevyDefault as _,
     render::{
         render_resource::{
             binding_types::{sampler, texture_2d, uniform_buffer},
@@ -64,7 +63,7 @@ pub(super) fn init_composite_pipeline(
         fragment: Some(FragmentState {
             shader,
             targets: vec![Some(ColorTargetState {
-                format: TextureFormat::bevy_default(),
+                format: TextureFormat::Rgba8UnormSrgb,
                 blend: None,
                 write_mask: ColorWrites::ALL,
             })],
@@ -77,7 +76,7 @@ pub(super) fn init_composite_pipeline(
     let light_sampler = render_device.create_sampler(&SamplerDescriptor {
         mag_filter: FilterMode::Linear,
         min_filter: FilterMode::Linear,
-        mipmap_filter: FilterMode::Linear,
+        mipmap_filter: MipmapFilterMode::Linear,
         ..default()
     });
 

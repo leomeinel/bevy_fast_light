@@ -8,11 +8,10 @@
 use bevy::{
     app::{App, Plugin},
     asset::embedded_asset,
-    core_pipeline::core_2d::graph::Core2d,
+    core_pipeline::{Core2d, Core2dSystems},
     ecs::schedule::IntoScheduleConfigs as _,
     render::{
         Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
-        render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
             AddRenderCommand as _, BinnedRenderPhasePlugin, DrawFunctions, ViewBinnedRenderPhases,
         },
@@ -45,7 +44,8 @@ impl Plugin for MeshLightPlugin {
             .init_resource::<ViewBinnedRenderPhases<MeshLightPhase>>()
             .init_resource::<MeshLightTextures>()
             .init_resource::<MeshLightFragmentBindGroups>()
-            .init_resource::<MeshLightUniformBuffers>();
+            .init_resource::<MeshLightUniformBuffers>()
+            .init_resource::<PendingLightQueues>();
 
         render_app.add_render_command::<MeshLightPhase, DrawMeshLight>();
 
@@ -53,7 +53,6 @@ impl Plugin for MeshLightPlugin {
             RenderStartup,
             super::pipeline::init_mesh_light_pipeline.after(init_mesh_2d_pipeline),
         );
-
         render_app.add_systems(
             Render,
             (
@@ -70,11 +69,9 @@ impl Plugin for MeshLightPlugin {
                     .in_set(RenderSystems::PrepareResources),
             ),
         );
-
-        render_app.add_render_graph_node::<ViewNodeRunner<MeshLightNode>>(Core2d, MeshLightLabel);
+        render_app.add_systems(
+            Core2d,
+            super::system::light.in_set(Core2dSystems::EarlyPostProcess),
+        );
     }
 }
-
-/// Label for render graph edges for [`MeshLightNode`].
-#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
-pub(crate) struct MeshLightLabel;

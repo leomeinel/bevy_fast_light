@@ -8,12 +8,11 @@
 use bevy::{
     app::{App, Plugin},
     asset::embedded_asset,
-    core_pipeline::core_2d::graph::Core2d,
+    core_pipeline::{Core2d, Core2dSystems},
     ecs::schedule::{IntoScheduleConfigs as _, SystemSet},
     render::{
         Render, RenderApp, RenderDebugFlags, RenderStartup, RenderSystems,
         extract_component::ExtractComponentPlugin,
-        render_graph::{RenderGraphExt, RenderLabel, ViewNodeRunner},
         render_phase::{
             AddRenderCommand as _, BinnedRenderPhasePlugin, DrawFunctions, ViewBinnedRenderPhases,
         },
@@ -47,7 +46,8 @@ impl Plugin for OccluderPlugin {
             .init_resource::<DrawFunctions<OccluderPhase>>()
             .init_resource::<SpecializedMeshPipelines<OccluderPipeline>>()
             .init_resource::<ViewBinnedRenderPhases<OccluderPhase>>()
-            .init_resource::<OccluderTextures>();
+            .init_resource::<OccluderTextures>()
+            .init_resource::<PendingOccluderQueues>();
 
         render_app.add_render_command::<OccluderPhase, DrawOccluder>();
 
@@ -55,7 +55,6 @@ impl Plugin for OccluderPlugin {
             RenderStartup,
             super::pipeline::init_occluder_pipeline.after(init_mesh_2d_pipeline),
         );
-
         render_app.add_systems(
             Render,
             (
@@ -65,14 +64,12 @@ impl Plugin for OccluderPlugin {
                     .in_set(RenderSystems::PrepareResources),
             ),
         );
-
-        render_app.add_render_graph_node::<ViewNodeRunner<OccluderNode>>(Core2d, OccluderLabel);
+        render_app.add_systems(
+            Core2d,
+            super::system::occluder.in_set(Core2dSystems::MainPass),
+        );
     }
 }
-
-/// Label for render graph edges for [`OccluderNode`].
-#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
-pub(crate) struct OccluderLabel;
 
 /// A system set for ordering occluder systems.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]

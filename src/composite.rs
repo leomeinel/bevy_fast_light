@@ -4,12 +4,11 @@
 //!
 //! This is the fourth render stage of [`FastLightPlugin`](crate::prelude::FastLightPlugin).
 
-mod node;
 mod pipeline;
 mod plugin;
+mod system;
 
 pub(super) mod prelude {
-    pub(super) use super::node::CompositeNode;
     pub(super) use super::pipeline::CompositePipeline;
-    pub(crate) use super::plugin::{CompositeLabel, CompositePlugin};
+    pub(crate) use super::plugin::CompositePlugin;
 }

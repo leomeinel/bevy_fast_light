@@ -1,22 +1,22 @@
 //! [`PhaseItem`]s and related for [`Sprite`] z-level rendering.
 
-use std::ops::Range;
-
 use bevy::{
-    core_pipeline::tonemapping::{DebandDither, Tonemapping},
+    camera::CompositingSpace,
+    core_pipeline::{
+        core_2d::Transparent2d,
+        tonemapping::{DebandDither, Tonemapping},
+    },
     ecs::{
-        entity::Entity,
         query::With,
         system::{Local, Query, Res, ResMut},
     },
     math::FloatOrd,
     render::{
+        camera::ExtractedCamera,
         render_phase::{
-            CachedRenderPipelinePhaseItem, DrawFunctionId, DrawFunctions, PhaseItem,
-            PhaseItemExtraIndex, SetItemPipeline, SortedPhaseItem, ViewSortedRenderPhases,
+            DrawFunctions, PhaseItemExtraIndex, SetItemPipeline, ViewSortedRenderPhases,
         },
-        render_resource::{CachedRenderPipelineId, PipelineCache, SpecializedRenderPipelines},
-        sync_world::MainEntity,
+        render_resource::{PipelineCache, SpecializedRenderPipelines},
         view::{ExtractedView, Msaa, RenderVisibleEntities},
     },
     sprite::Sprite,
@@ -26,72 +26,11 @@ use fixedbitset::FixedBitSet;
 
 use crate::{extract::prelude::*, sprite_depth::prelude::*};
 
-/// [`PhaseItem`] drawn in the render phase for [`Sprite`] z-level rendering.
+/// [`RenderCommand`](bevy::render::render_phase::RenderCommand) for sprite rendering.
 ///
-/// Last updated from [`bevy`]@0.18.1.
-pub(crate) struct SpriteDepthPhase {
-    pub(crate) sort_key: FloatOrd,
-    pub(crate) entity: (Entity, MainEntity),
-    pub(crate) pipeline: CachedRenderPipelineId,
-    pub(crate) draw_function: DrawFunctionId,
-    pub(crate) batch_range: Range<u32>,
-    pub(crate) extracted_index: usize,
-    pub(crate) extra_index: PhaseItemExtraIndex,
-    pub(crate) indexed: bool,
-}
-impl PhaseItem for SpriteDepthPhase {
-    #[inline]
-    fn entity(&self) -> Entity {
-        self.entity.0
-    }
-    #[inline]
-    fn main_entity(&self) -> MainEntity {
-        self.entity.1
-    }
-    #[inline]
-    fn draw_function(&self) -> DrawFunctionId {
-        self.draw_function
-    }
-    #[inline]
-    fn batch_range(&self) -> &Range<u32> {
-        &self.batch_range
-    }
-    #[inline]
-    fn batch_range_mut(&mut self) -> &mut Range<u32> {
-        &mut self.batch_range
-    }
-    #[inline]
-    fn extra_index(&self) -> PhaseItemExtraIndex {
-        self.extra_index.clone()
-    }
-    #[inline]
-    fn batch_range_and_extra_index_mut(&mut self) -> (&mut Range<u32>, &mut PhaseItemExtraIndex) {
-        (&mut self.batch_range, &mut self.extra_index)
-    }
-}
-impl SortedPhaseItem for SpriteDepthPhase {
-    type SortKey = FloatOrd;
-    #[inline]
-    fn sort_key(&self) -> Self::SortKey {
-        self.sort_key
-    }
-    #[inline]
-    fn indexed(&self) -> bool {
-        self.indexed
-    }
-}
-impl CachedRenderPipelinePhaseItem for SpriteDepthPhase {
-    #[inline]
-    fn cached_pipeline(&self) -> CachedRenderPipelineId {
-        self.pipeline
-    }
-}
-
-/// Custom implementation of [`DrawSprite`](bevy::sprite_render::DrawSprite).
+/// This is mostly copied from [`DrawSprite`](bevy::sprite_render::render::DrawSprite).
 ///
-/// This is mostly copied from `DrawSprite` of [`sprite_render`](bevy::sprite_render).
-///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub(super) type DrawSpriteDepth = (
     SetItemPipeline,
     SetSpriteViewBindGroup<0>,
@@ -103,18 +42,19 @@ pub(super) type DrawSpriteDepth = (
 ///
 /// This is mostly copied from [`queue_sprites`](bevy::sprite_render::queue_sprites).
 ///
-/// Last updated from [`bevy`]@0.18.1.
+/// Last updated from [`bevy`]@0.19.0.
 pub fn queue_sprite_depths(
     mut view_entities: Local<FixedBitSet>,
-    draw_functions: Res<DrawFunctions<SpriteDepthPhase>>,
+    draw_functions: Res<DrawFunctions<Transparent2d>>,
     sprite_depth_pipeline: Res<SpriteDepthPipeline>,
     mut pipelines: ResMut<SpecializedRenderPipelines<SpriteDepthPipeline>>,
     pipeline_cache: Res<PipelineCache>,
     extracted_sprites: Res<ExtractedSprites>,
-    mut sprite_depth_phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
-    mut views: Query<
+    mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
+    mut cameras: Query<
         (
             &RenderVisibleEntities,
+            &ExtractedCamera,
             &ExtractedView,
             &Msaa,
             Option<&Tonemapping>,
@@ -125,14 +65,29 @@ pub fn queue_sprite_depths(
 ) {
     let draw_function = draw_functions.read().id::<DrawSpriteDepth>();
 
-    for (visible_entities, view, msaa, tonemapping, dither) in &mut views {
-        let Some(phase) = sprite_depth_phases.get_mut(&view.retained_view_entity) else {
+    for (visible_entities, camera, view, msaa, tonemapping, dither) in &mut cameras {
+        let Some(transparent_phase) = transparent_render_phases.get_mut(&view.retained_view_entity)
+        else {
             continue;
         };
 
         let msaa_key = SpritePipelineKey::from_msaa_samples(msaa.samples());
-        let mut view_key = SpritePipelineKey::from_hdr(view.hdr) | msaa_key;
-        if !view.hdr {
+        let mut view_key = SpritePipelineKey::from_target_format(view.target_format) | msaa_key;
+
+        if camera
+            .compositing_space
+            .is_some_and(|s| s == CompositingSpace::Srgb)
+        {
+            view_key |= SpritePipelineKey::SRGB_COMPOSITING;
+        }
+        if camera
+            .compositing_space
+            .is_some_and(|s| s == CompositingSpace::Oklab)
+        {
+            view_key |= SpritePipelineKey::OKLAB_COMPOSITING;
+        }
+
+        if !camera.hdr {
             if let Some(tonemapping) = tonemapping {
                 view_key |= SpritePipelineKey::TONEMAP_IN_SHADER;
                 view_key |= match tonemapping {
@@ -148,6 +103,7 @@ pub fn queue_sprite_depths(
                     }
                     Tonemapping::TonyMcMapface => SpritePipelineKey::TONEMAP_METHOD_TONY_MC_MAPFACE,
                     Tonemapping::BlenderFilmic => SpritePipelineKey::TONEMAP_METHOD_BLENDER_FILMIC,
+                    Tonemapping::KhronosPbrNeutral => SpritePipelineKey::TONEMAP_METHOD_PBR_NEUTRAL,
                 };
             }
             if let Some(DebandDither::Enabled) = dither {
@@ -158,16 +114,21 @@ pub fn queue_sprite_depths(
         let pipeline = pipelines.specialize(&pipeline_cache, &sprite_depth_pipeline, view_key);
 
         view_entities.clear();
-        view_entities.extend(
-            visible_entities
-                .iter::<Sprite>()
-                .map(|(_, e)| e.index_u32() as usize),
-        );
+        if let Some(visible_entities) = visible_entities.get::<Sprite>() {
+            view_entities.extend(
+                visible_entities
+                    .iter_visible()
+                    .map(|(_, e)| e.index_u32() as usize),
+            );
+        }
 
-        phase.items.reserve(extracted_sprites.sprites.len());
+        transparent_phase
+            .items
+            .reserve(extracted_sprites.sprites.len());
 
         for (index, extracted_sprite) in extracted_sprites.sprites.iter().enumerate() {
             let view_index = extracted_sprite.main_entity.index_u32();
+
             if !view_entities.contains(view_index as usize) {
                 continue;
             }
@@ -176,7 +137,7 @@ pub fn queue_sprite_depths(
             let sort_key = FloatOrd(extracted_sprite.transform.translation().z);
 
             // Add the item to the render phase
-            phase.add(SpriteDepthPhase {
+            transparent_phase.add_transient(Transparent2d {
                 draw_function,
                 pipeline,
                 entity: (

@@ -8,18 +8,17 @@
 //!
 //! This also contains [`AmbientLight2d`] but modules for rendering that are located in [composite](crate::composite).
 
-mod node;
 mod phase;
 mod pipeline;
 mod plugin;
 mod prepare;
+mod system;
 
 pub(super) mod prelude {
-    pub(super) use super::node::MeshLightNode;
-    pub(super) use super::phase::DrawMeshLight;
     pub(crate) use super::phase::MeshLightPhase;
+    pub(super) use super::phase::{DrawMeshLight, PendingLightQueues};
     pub(super) use super::pipeline::MeshLightPipeline;
-    pub(crate) use super::plugin::{MeshLightLabel, MeshLightPlugin};
+    pub(crate) use super::plugin::MeshLightPlugin;
     pub(crate) use super::prepare::MeshLightTextures;
     pub(super) use super::prepare::MeshLightUniformBuffers;
     pub(crate) use super::{AmbientLight2d, MeshLight};
@@ -134,7 +133,7 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetMeshLightFragmentBind
             return RenderCommandResult::Skip;
         };
 
-        pass.set_bind_group(I, &bind_group, &[]);
+        pass.set_bind_group(I, bind_group, &[]);
         RenderCommandResult::Success
     }
 }
