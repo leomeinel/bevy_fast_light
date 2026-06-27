@@ -20,8 +20,6 @@ use bevy::{
 
 /// Custom implementation of [`SpritePipeline`](bevy::sprite_render::SpritePipeline).
 ///
-/// This is mostly copied from [`sprite_render`](bevy::sprite_render).
-///
 /// Last updated from [`bevy`]@0.19.0.
 #[derive(Resource)]
 pub(super) struct SpriteDepthPipeline {
@@ -81,8 +79,6 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
             shader_defs.push("OKLAB_OUTPUT".into());
         }
 
-        let format = key.target_format();
-
         let instance_rate_vertex_buffer_layout = VertexBufferLayout {
             array_stride: 64,
             step_mode: VertexStepMode::Instance,
@@ -125,7 +121,7 @@ impl SpecializedRenderPipeline for SpriteDepthPipeline {
                 shader: self.shader.clone(),
                 shader_defs,
                 targets: vec![Some(ColorTargetState {
-                    format,
+                    format: TextureFormat::Rgba8Unorm,
                     // NOTE: This is needed since we need to alpha blend the rendered sprite z-levels.
                     //       Since we are multiplying everything in `sprite_depth` by `select`, we need `BlendState::PREMULTIPLIED_ALPHA_BLENDING`.
                     blend: Some(BlendState::PREMULTIPLIED_ALPHA_BLENDING),

@@ -3,10 +3,13 @@
 use bevy::{
     app::{App, Plugin},
     asset::embedded_asset,
-    core_pipeline::{Core2d, Core2dSystems, core_2d::Transparent2d},
+    core_pipeline::{Core2d, Core2dSystems},
     ecs::schedule::IntoScheduleConfigs as _,
     render::{
-        Render, RenderApp, RenderStartup, RenderSystems, render_phase::AddRenderCommand,
+        Render, RenderApp, RenderStartup, RenderSystems,
+        render_phase::{
+            AddRenderCommand, DrawFunctions, ViewSortedRenderPhases, sort_phase_system,
+        },
         render_resource::SpecializedRenderPipelines,
     },
 };
@@ -24,18 +27,21 @@ impl Plugin for SpriteDepthPlugin {
         };
 
         render_app
+            .init_resource::<DrawFunctions<SpriteDepthPhase>>()
             .init_resource::<SpecializedRenderPipelines<SpriteDepthPipeline>>()
+            .init_resource::<ViewSortedRenderPhases<SpriteDepthPhase>>()
             .init_resource::<SpriteDepthMeta>()
             .init_resource::<SpriteDepthBatches>()
             .init_resource::<SpriteDepthImageBindGroups>();
 
-        render_app.add_render_command::<Transparent2d, DrawSpriteDepth>();
+        render_app.add_render_command::<SpriteDepthPhase, DrawSpriteDepth>();
 
         render_app.add_systems(RenderStartup, super::pipeline::init_sprite_depth_pipeline);
         render_app.add_systems(
             Render,
             (
                 super::phase::queue_sprite_depths.in_set(RenderSystems::Queue),
+                sort_phase_system::<SpriteDepthPhase>.in_set(RenderSystems::PhaseSort),
                 (
                     super::prepare::prepare_sprite_depth_view_bind_groups,
                     super::prepare::prepare_sprite_depth_image_bind_groups,

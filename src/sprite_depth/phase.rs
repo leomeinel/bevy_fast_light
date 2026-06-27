@@ -1,30 +1,115 @@
 //! [`PhaseItem`]s and related for [`Sprite`] z-level rendering.
 
+use std::ops::Range;
+
 use bevy::{
     camera::CompositingSpace,
-    core_pipeline::{
-        core_2d::Transparent2d,
-        tonemapping::{DebandDither, Tonemapping},
-    },
+    core_pipeline::tonemapping::{DebandDither, Tonemapping},
     ecs::{
+        entity::{Entity, EntityHash},
         query::With,
         system::{Local, Query, Res, ResMut},
     },
+    material::{descriptor::CachedRenderPipelineId, labels::DrawFunctionId},
     math::FloatOrd,
     render::{
         camera::ExtractedCamera,
         render_phase::{
-            DrawFunctions, PhaseItemExtraIndex, SetItemPipeline, ViewSortedRenderPhases,
+            CachedRenderPipelinePhaseItem, DrawFunctions, PhaseItem, PhaseItemExtraIndex,
+            SetItemPipeline, SortedPhaseItem, ViewSortedRenderPhases,
         },
         render_resource::{PipelineCache, SpecializedRenderPipelines},
+        sync_world::MainEntity,
         view::{ExtractedView, Msaa, RenderVisibleEntities},
     },
     sprite::Sprite,
     sprite_render::{ExtractedSprites, SetSpriteViewBindGroup, SpritePipelineKey},
 };
 use fixedbitset::FixedBitSet;
+use indexmap::IndexMap;
 
 use crate::{extract::prelude::*, sprite_depth::prelude::*};
+
+/// Custom implementation of [`Transparent2d`](bevy::core_pipeline::core_2d::Transparent2d).
+///
+/// Last updated from [`bevy`]@0.19.0.
+pub struct SpriteDepthPhase {
+    pub sort_key: FloatOrd,
+    pub entity: (Entity, MainEntity),
+    pub pipeline: CachedRenderPipelineId,
+    pub draw_function: DrawFunctionId,
+    pub batch_range: Range<u32>,
+    pub extracted_index: usize,
+    pub extra_index: PhaseItemExtraIndex,
+    /// Whether the mesh in question is indexed (uses an index buffer in
+    /// addition to its vertex buffer).
+    pub indexed: bool,
+}
+impl PhaseItem for SpriteDepthPhase {
+    #[inline]
+    fn entity(&self) -> Entity {
+        self.entity.0
+    }
+
+    #[inline]
+    fn main_entity(&self) -> MainEntity {
+        self.entity.1
+    }
+
+    #[inline]
+    fn draw_function(&self) -> DrawFunctionId {
+        self.draw_function
+    }
+
+    #[inline]
+    fn batch_range(&self) -> &Range<u32> {
+        &self.batch_range
+    }
+
+    #[inline]
+    fn batch_range_mut(&mut self) -> &mut Range<u32> {
+        &mut self.batch_range
+    }
+
+    #[inline]
+    fn extra_index(&self) -> PhaseItemExtraIndex {
+        self.extra_index.clone()
+    }
+
+    #[inline]
+    fn batch_range_and_extra_index_mut(&mut self) -> (&mut Range<u32>, &mut PhaseItemExtraIndex) {
+        (&mut self.batch_range, &mut self.extra_index)
+    }
+}
+impl SortedPhaseItem for SpriteDepthPhase {
+    type SortKey = FloatOrd;
+
+    #[inline]
+    fn sort_key(&self) -> Self::SortKey {
+        self.sort_key
+    }
+
+    #[inline]
+    fn sort(items: &mut IndexMap<(Entity, MainEntity), SpriteDepthPhase, EntityHash>) {
+        items.sort_by_key(|_, item| item.sort_key());
+    }
+
+    fn recalculate_sort_keys(
+        _: &mut IndexMap<(Entity, MainEntity), Self, EntityHash>,
+        _: &ExtractedView,
+    ) {
+    }
+
+    fn indexed(&self) -> bool {
+        self.indexed
+    }
+}
+impl CachedRenderPipelinePhaseItem for SpriteDepthPhase {
+    #[inline]
+    fn cached_pipeline(&self) -> CachedRenderPipelineId {
+        self.pipeline
+    }
+}
 
 /// [`RenderCommand`](bevy::render::render_phase::RenderCommand) for sprite rendering.
 ///
@@ -45,12 +130,12 @@ pub(super) type DrawSpriteDepth = (
 /// Last updated from [`bevy`]@0.19.0.
 pub fn queue_sprite_depths(
     mut view_entities: Local<FixedBitSet>,
-    draw_functions: Res<DrawFunctions<Transparent2d>>,
+    draw_functions: Res<DrawFunctions<SpriteDepthPhase>>,
     sprite_depth_pipeline: Res<SpriteDepthPipeline>,
     mut pipelines: ResMut<SpecializedRenderPipelines<SpriteDepthPipeline>>,
     pipeline_cache: Res<PipelineCache>,
     extracted_sprites: Res<ExtractedSprites>,
-    mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
+    mut transparent_render_phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
     mut cameras: Query<
         (
             &RenderVisibleEntities,
@@ -137,7 +222,7 @@ pub fn queue_sprite_depths(
             let sort_key = FloatOrd(extracted_sprite.transform.translation().z);
 
             // Add the item to the render phase
-            transparent_phase.add_transient(Transparent2d {
+            transparent_phase.add_transient(SpriteDepthPhase {
                 draw_function,
                 pipeline,
                 entity: (

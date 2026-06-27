@@ -2,10 +2,7 @@
 
 use bevy::{
     asset::AssetEvent,
-    core_pipeline::{
-        core_2d::Transparent2d,
-        tonemapping::{Tonemapping, TonemappingLuts, get_lut_bindings},
-    },
+    core_pipeline::tonemapping::{Tonemapping, TonemappingLuts, get_lut_bindings},
     ecs::{
         entity::Entity,
         query::With,
@@ -79,7 +76,7 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
     gpu_images: Res<RenderAssets<GpuImage>>,
     extracted_sprites: Res<ExtractedSprites>,
     extracted_slices: Res<ExtractedSlices>,
-    mut phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
+    mut phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
     events: Res<SpriteAssetEvents>,
     mut batches: ResMut<SpriteDepthBatches>,
 ) {

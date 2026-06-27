@@ -1,7 +1,6 @@
 //! Render z-levels of [`Sprite`](bevy::sprite::Sprite)s to a texture from [`OccluderTextures`].
 
 use bevy::{
-    core_pipeline::core_2d::Transparent2d,
     ecs::{system::Res, world::World},
     log::error,
     render::{
@@ -12,20 +11,20 @@ use bevy::{
     },
 };
 
-use crate::{extract::prelude::*, occluder::prelude::*};
+use crate::{extract::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 
 /// Render z-levels of [`Sprite`](bevy::sprite::Sprite)s to a texture from [`OccluderTextures`].
 pub(super) fn sprite_depth(
     world: &World,
     view: ViewQuery<(&ExtractedView, &ExtractedAmbientLight2d)>,
     mut ctx: RenderContext,
-    transparent_render_phases: Res<ViewSortedRenderPhases<Transparent2d>>,
+    sprite_depth_phases: Res<ViewSortedRenderPhases<SpriteDepthPhase>>,
     occluder_textures: Res<OccluderTextures>,
 ) {
     let view_entity = view.entity();
     let (extracted_view, _) = view.into_inner();
     let (Some(transparent_phase), Some(occluder_texture)) = (
-        transparent_render_phases.get(&extracted_view.retained_view_entity),
+        sprite_depth_phases.get(&extracted_view.retained_view_entity),
         occluder_textures
             .0
             .get(&extracted_view.retained_view_entity),
