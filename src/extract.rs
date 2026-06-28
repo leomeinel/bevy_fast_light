@@ -17,14 +17,17 @@ use bevy::{
     mesh::Mesh2d,
     platform::collections::HashSet,
     render::{
-        Extract, batching::gpu_preprocessing::GpuPreprocessingMode,
-        render_phase::ViewBinnedRenderPhases, render_resource::ShaderType,
-        sync_world::RenderEntity, view::RetainedViewEntity,
+        Extract,
+        batching::gpu_preprocessing::GpuPreprocessingMode,
+        render_phase::{ViewBinnedRenderPhases, ViewSortedRenderPhases},
+        render_resource::ShaderType,
+        sync_world::RenderEntity,
+        view::RetainedViewEntity,
     },
 };
 use bytemuck::{Pod, Zeroable};
 
-use crate::{light::prelude::*, occluder::prelude::*};
+use crate::{light::prelude::*, occluder::prelude::*, sprite_depth::prelude::*};
 
 /// [`ShaderType`] that gets extracted to the render world for [`AmbientLight2d`].
 #[derive(Component, Default, Clone, Copy, ShaderType, Debug)]
@@ -106,6 +109,7 @@ pub(super) fn extract_mesh_lights(
 
 /// Extract [`RetainedViewEntity`]s to relevant render phases.
 pub(super) fn extract_view_entities(
+    mut sprite_depth_phases: ResMut<ViewSortedRenderPhases<SpriteDepthPhase>>,
     mut occluder_phases: ResMut<ViewBinnedRenderPhases<OccluderPhase>>,
     mut light_phases: ResMut<ViewBinnedRenderPhases<MeshLightPhase>>,
     cameras: Extract<Query<(Entity, &Camera), (With<Camera2d>, With<AmbientLight2d>)>>,
@@ -118,11 +122,13 @@ pub(super) fn extract_view_entities(
         }
         // NOTE: This is the main camera, so we use the first subview index (0)
         let retained_view_entity = RetainedViewEntity::new(main_entity.into(), None, 0);
+        sprite_depth_phases.prepare_for_new_frame(retained_view_entity);
         occluder_phases.prepare_for_new_frame(retained_view_entity, GpuPreprocessingMode::None);
         light_phases.prepare_for_new_frame(retained_view_entity, GpuPreprocessingMode::None);
         live_entities.insert(retained_view_entity);
     }
 
+    sprite_depth_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
     occluder_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
     light_phases.retain(|camera_entity, _| live_entities.contains(camera_entity));
 }

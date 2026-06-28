@@ -16,7 +16,8 @@ mod prepare;
 mod system;
 
 pub(crate) mod prelude {
-    pub(super) use super::phase::{DrawSpriteDepth, SpriteDepthPhase};
+    pub(super) use super::phase::DrawSpriteDepth;
+    pub(crate) use super::phase::SpriteDepthPhase;
     pub(super) use super::pipeline::SpriteDepthPipeline;
     pub(crate) use super::plugin::SpriteDepthPlugin;
     pub(super) use super::{
