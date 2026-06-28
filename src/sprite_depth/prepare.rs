@@ -303,7 +303,7 @@ pub(super) fn prepare_sprite_depth_image_bind_groups(
 
 /// Scales a texture to fit within a given quad size with keeping the aspect ratio.
 ///
-/// This is mostly copied from [`sprite_render::render`](bevy::sprite_render::render).
+/// This is mostly copied from [`sprite_render`](bevy::sprite_render).
 ///
 /// Last updated from [`bevy`]@0.19.0.
 fn apply_scaling(

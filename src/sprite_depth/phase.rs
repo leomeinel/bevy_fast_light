@@ -113,7 +113,7 @@ impl CachedRenderPipelinePhaseItem for SpriteDepthPhase {
 
 /// [`RenderCommand`](bevy::render::render_phase::RenderCommand) for sprite rendering.
 ///
-/// This is mostly copied from [`DrawSprite`](bevy::sprite_render::render::DrawSprite).
+/// This is mostly copied from [`DrawSprite`](bevy::sprite_render::DrawSprite).
 ///
 /// Last updated from [`bevy`]@0.19.0.
 pub(super) type DrawSpriteDepth = (
